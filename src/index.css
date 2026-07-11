@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -29,6 +31,27 @@
     font-size: 16px;
   }
 }
+
+
+/* Custom Marble Texture Background Utilities */
+.marble-light {
+  background-color: #fcfbfc;
+  background-image: 
+    radial-gradient(at 30% 20%, rgba(220, 215, 210, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 40%, rgba(200, 195, 185, 0.12) 0px, transparent 50%),
+    linear-gradient(135deg, rgba(230,225,220,0.05) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(230,225,220,0.05) 25%, transparent 25%);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+.marble-dark {
+  background-color: #11141a;
+  background-image: 
+    radial-gradient(at 20% 15%, rgba(255, 255, 255, 0.02) 0px, transparent 40%),
+    radial-gradient(at 75% 60%, rgba(255, 255, 255, 0.01) 0px, transparent 45%),
+    linear-gradient(120deg, rgba(255,255,255,0.01) 0%, rgba(0,0,0,0.3) 100%);
+}
+
 
 @media (prefers-color-scheme: dark) {
   :root {
