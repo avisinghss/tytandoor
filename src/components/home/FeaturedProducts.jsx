@@ -1,91 +1,74 @@
+import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-
-const products = [
-  {
-    id: 1,
-    name: "Premium Flush Door",
-    code: "TD-101",
-    image: "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800",
-  },
-  {
-    id: 2,
-    name: "Designer Veneer Door",
-    code: "TD-102",
-    image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800",
-  },
-  {
-    id: 3,
-    name: "Luxury Laminate Door",
-    code: "TD-103",
-    image: "https://images.unsplash.com/photo-1600047509358-9dc75507daeb?w=800",
-  },
-  {
-    id: 4,
-    name: "Fire Rated Door",
-    code: "TD-104",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
-  },
-];
+import products from "../../data/products";
 
 export default function FeaturedProducts() {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-28 bg-[#F8F7F4]">
       <div className="max-w-7xl mx-auto px-6">
 
-        <div className="flex items-end justify-between mb-12">
-          <div>
-            <span className="uppercase tracking-[4px] text-red-700 font-semibold">
-              Featured Collection
-            </span>
+        <motion.div
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <span className="uppercase tracking-[0.35em] text-red-700 font-semibold">
+            Featured Products
+          </span>
 
-            <h2 className="text-4xl md:text-5xl font-bold mt-3">
-              Our Best Selling Doors
-            </h2>
-          </div>
+          <h2 className="mt-4 text-5xl font-black">
+            Best Selling Doors
+          </h2>
 
-          <button className="hidden md:flex items-center gap-2 text-red-700 font-semibold">
-            View All
-            <ArrowRight size={18} />
-          </button>
-        </div>
+          <p className="mt-6 text-gray-600 max-w-2xl mx-auto leading-8">
+            Discover our most popular premium doors designed for modern
+            architecture and luxury living.
+          </p>
+        </motion.div>
 
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
 
-          {products.map((product) => (
-
-            <div
+          {products.map((product, index) => (
+            <motion.div
               key={product.id}
-              className="group rounded-3xl overflow-hidden shadow-lg bg-[#fafafa] hover:shadow-2xl transition"
+              initial={{ opacity: 0, y: 35 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
+              className="group overflow-hidden rounded-3xl bg-white shadow-sm hover:shadow-xl transition-all duration-500"
             >
 
-              <div className="overflow-hidden h-72">
-
+              <div className="overflow-hidden">
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                  className="h-80 w-full object-cover transition duration-700 group-hover:scale-110"
                 />
-
               </div>
 
               <div className="p-6">
 
-                <p className="text-red-700 text-sm font-semibold">
-                  {product.code}
-                </p>
+                <span className="text-sm uppercase tracking-widest text-red-700">
+                  {product.category}
+                </span>
 
-                <h3 className="text-xl font-bold mt-2">
+                <h3 className="mt-3 text-2xl font-bold">
                   {product.name}
                 </h3>
 
-                <button className="mt-6 w-full rounded-full bg-red-700 py-3 text-white hover:bg-black transition">
+                <p className="mt-4 leading-7 text-gray-600">
+                  {product.description}
+                </p>
+
+                <button className="mt-6 flex items-center gap-2 font-semibold text-red-700 hover:gap-3 transition-all">
                   View Details
+                  <ArrowRight size={18} />
                 </button>
 
               </div>
 
-            </div>
-
+            </motion.div>
           ))}
 
         </div>

@@ -2,39 +2,26 @@ const categories = [
   {
     id: 1,
     name: "Flush Doors",
-    slug: "flush-doors",
     image: "/images/categories/flush.jpg",
+    description: "Elegant flush doors with premium finish.",
   },
   {
     id: 2,
-    name: "Laminate Doors",
-    slug: "laminate-doors",
-    image: "/images/categories/laminate.jpg",
+    name: "Designer Doors",
+    image: "/images/categories/designer.jpg",
+    description: "Luxury designer doors for modern interiors.",
   },
   {
     id: 3,
-    name: "Veneer Doors",
-    slug: "veneer-doors",
-    image: "/images/categories/veneer.jpg",
+    name: "Fire Rated Doors",
+    image: "/images/categories/fire.jpg",
+    description: "Certified fire-resistant safety doors.",
   },
   {
     id: 4,
-    name: "Fire Rated Doors",
-    slug: "fire-rated-doors",
-    image: "/images/categories/fire.jpg",
-  },
-  {
-    id: 5,
-    name: "WPC Doors",
-    slug: "wpc-doors",
-    image: "/images/categories/wpc.jpg",
-  },
-  {
-    id: 6,
-    name: "Designer Doors",
-    slug: "designer-doors",
-    image: "/images/categories/designer.jpg",
+    name: "Laminate Doors",
+    image: "/images/categories/laminate.jpg",
+    description: "Stylish laminate finishes with durability.",
   },
 ];
-
 export default categories;
