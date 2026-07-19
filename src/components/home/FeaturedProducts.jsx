@@ -26,8 +26,13 @@ export default function FeaturedProducts() {
   const currentProduct = products[currentIndex];
 
   return (
-    <section className="py-16 bg-[#F8F7F4] font-sans flex flex-col items-center min-h-screen">
+    // <section className="py-16 bg-[#F8F7F4] font-sans flex flex-col items-center min-h-screen">
+    <section className="relative min-h-screen py-16 font-sans flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat bg-[#F8F7F4]" style={{ backgroundImage: "url('/images/marbel-bg.jpg')" }}>
+      {/* 1. FADE OVERLAY (Fades the background image at the bottom) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#F8F7F4] via-[#F8F7F4]/40 to-transparent pointer-events-none z-0" />
 
+      {/* 2. MAIN CONTAINER (Added 'relative z-10' to keep content above the fade) */}
+      <div className="relative z-10 max-w-7xl w-full px-6 md:px-12"></div>
       <div className="max-w-7xl w-full px-6 md:px-12">
         {/* 2. Headline & Subtitle */}
         <div className="mb-12 text-center md:text-left max-w-2xl">

@@ -38,18 +38,23 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
 
-          <div className="w-12 h-12 rounded-xl bg-red-700 text-white flex items-center justify-center text-2xl font-bold">
+          {/* <div className="w-12 h-12 rounded-xl bg-red-700 text-white flex items-center justify-center text-2xl font-bold">
             T
-          </div>
+          </div> */}
+          <img 
+  src="/logo.png" 
+  alt="Company Logo" 
+  className="w-12 h-12 object-contain" 
+/>
 
           <div>
-            <h1 className="text-2xl font-black tracking-wide">
-              TYTAN
-            </h1>
+            <h1 className="font-cinzel text-2xl font-black tracking-wide">
+    TYTAN
+  </h1>
 
-            <p className="text-xs uppercase tracking-[4px] text-red-700">
-              Premium Doors
-            </p>
+  <p className="font-cinzel text-xs uppercase tracking-[4px] text-red-700">
+    Door
+  </p>
           </div>
 
         </div>
