@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import ThemeToggle from "../common/ThemeToggle"; // Path check kar lein apne folder structure ke hisab se
 
 const navItems = [
   "Home",
@@ -18,7 +19,6 @@ export default function Header() {
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -26,93 +26,87 @@ export default function Header() {
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/95 shadow-lg backdrop-blur-md"
-          : "bg-white/70 backdrop-blur-md"
+          ? "bg-white/95 dark:bg-zinc-950/95 shadow-lg backdrop-blur-md"
+          : "bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md"
       }`}
     >
       <div className="max-w-7xl mx-auto h-20 px-6 flex items-center justify-between">
 
-        {/* Logo */}
-
+        {/* Logo Section */}
         <div className="flex items-center gap-3">
-
-          {/* <div className="w-12 h-12 rounded-xl bg-red-700 text-white flex items-center justify-center text-2xl font-bold">
-            T
-          </div> */}
           <img 
-  src="/logo.png" 
-  alt="Company Logo" 
-  className="w-12 h-12 object-contain" 
-/>
-
+            src="/logo.png" 
+            alt="Company Logo" 
+            className="w-12 h-12 object-contain" 
+          />
           <div>
-            <h1 className="font-cinzel text-2xl font-black tracking-wide">
-    TYTAN
-  </h1>
-
-  <p className="font-cinzel text-xs uppercase tracking-[4px] text-red-700">
-    Door
-  </p>
+            <h1 className="font-cinzel text-2xl font-black tracking-wide text-black dark:text-white">
+              TYTAN
+            </h1>
+            <p className="font-cinzel text-xs uppercase tracking-[4px] text-red-700 dark:text-red-500">
+              Door
+            </p>
           </div>
-
         </div>
 
-        {/* Desktop Navigation */}
-
-        <nav className="hidden lg:flex items-center gap-8">
-
+        {/* Desktop Navigation Links */}
+        <nav className="hidden lg:flex items-center gap-8 text-gray-800 dark:text-gray-200">
           {navItems.map((item) => (
             <a
               key={item}
               href="/"
-              className="font-medium hover:text-red-700 transition"
+              className="font-medium hover:text-red-700 dark:hover:text-red-500 transition"
             >
               {item}
             </a>
           ))}
-
         </nav>
 
-        {/* Enquiry Button */}
-
-        <div className="hidden lg:block">
-
-          <button className="bg-red-700 hover:bg-black transition text-white px-6 py-3 rounded-full font-semibold shadow-lg">
+        {/* Desktop Right Side Area (Theme Changer + Button) */}
+        <div className="hidden lg:flex items-center gap-6">
+          {/* Theme Button visible inside PC Page View */}
+          <ThemeToggle />
+          
+          <button className="bg-red-700 hover:bg-black dark:hover:bg-zinc-800 transition text-white px-6 py-3 rounded-full font-semibold shadow-lg">
             Enquire Now
           </button>
-
         </div>
 
-        {/* Mobile Button */}
+        {/* Mobile Action Controls Wrapper (Visible on Phone and Tab responsive layouts) */}
+        <div className="flex items-center gap-4 lg:hidden">
+          
+          {/* Theme Switcher exactly near Hamburger Menu */}
+          <ThemeToggle />
 
-        <button
-          className="lg:hidden"
-          onClick={() => setMobileMenu(!mobileMenu)}
-        >
-          {mobileMenu ? <X size={28} /> : <Menu size={28} />}
-        </button>
+          {/* Hamburger Menu Action Button */}
+          <button
+            className="text-black dark:text-white focus:outline-none"
+            onClick={() => setMobileMenu(!mobileMenu)}
+          >
+            {mobileMenu ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
 
       </div>
 
+      {/* Mobile Drawer Navigation Menu */}
       {mobileMenu && (
-        <div className="lg:hidden bg-white shadow-xl">
-
+        <div className="lg:hidden bg-white dark:bg-zinc-900 border-t border-gray-100 dark:border-zinc-800 shadow-xl transition-colors">
           {navItems.map((item) => (
             <a
               key={item}
               href="/"
-              className="block px-6 py-4 border-b hover:bg-gray-50"
+              className="block px-6 py-4 border-b border-gray-100 dark:border-zinc-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
             >
               {item}
             </a>
           ))}
 
           <div className="p-6">
-            <button className="w-full bg-red-700 text-white py-3 rounded-xl">
+            <button className="w-full bg-red-700 text-white py-3 rounded-xl hover:bg-black dark:hover:bg-zinc-800 transition font-semibold">
               Enquire Now
             </button>
           </div>
-
         </div>
       )}
     </header>

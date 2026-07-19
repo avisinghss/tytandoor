@@ -22,21 +22,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Links */}
-          <div>
-            <h3 className="mb-6 text-xl font-bold">
-              Quick Links
-            </h3>
-
-            <ul className="space-y-3 text-gray-400">
-              <li className="hover:text-white cursor-pointer">Home</li>
-              <li className="hover:text-white cursor-pointer">Products</li>
-              <li className="hover:text-white cursor-pointer">Gallery</li>
-              <li className="hover:text-white cursor-pointer">About</li>
-              <li className="hover:text-white cursor-pointer">Contact</li>
-            </ul>
-          </div>
-
           {/* Contact */}
           <div>
             <h3 className="mb-6 text-xl font-bold">
@@ -44,10 +29,10 @@ export default function Footer() {
             </h3>
 
             <div className="space-y-4 text-gray-400">
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <MapPin size={18} />
                 <span>Ahmedabad, Gujarat</span>
-              </div>
+              </div> */}
 
               <div className="flex items-center gap-3">
                 <Phone size={18} />
@@ -81,7 +66,7 @@ export default function Footer() {
         <p className="text-center text-sm text-gray-500">
   Web Design &amp; Development |{" "}
   <a
-    href="#"
+    href="https://anubhavcodes.vercel.app/"
     className="font-small text-gray hover:text-green-600 transition-colors"
   >
     Anubhav Codes

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* 1. Tailwind v4 ke liye manual class-based dark mode variant selector */
+@variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --brand-white: #FFFFFF;
@@ -10,13 +13,16 @@
   }
 
   body {
-    @apply bg-white text-[#0A0A0A] antialiased overflow-x-hidden selection:bg-[#B91C1C] selection:text-white;
+    /* 2. Added dark:bg-zinc-950 and dark:text-white here */
+    @apply bg-white text-[#0A0A0A] dark:bg-zinc-950 dark:text-white antialiased overflow-x-hidden selection:bg-[#B91C1C] selection:text-white transition-colors duration-300;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 }
+
 @theme {
   --font-cinzel: "Cinzel", serif;
 }
+
 /* Luxury Soft Marble Texture System */
 .marble-light {
   background-color: #FDFDFD;
@@ -27,12 +33,17 @@
   background-attachment: fixed;
 }
 
-/* Glassmorphism Luxury Utilities */
+/* 3. Dark Mode support inside your custom glass utility */
 .glass-header {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   background-color: rgba(255, 255, 255, 0.75);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+:where(.dark) .glass-header {
+  background-color: rgba(9, 9, 11, 0.75); /* Dynamic Zinc-950 tint for dark glass */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* Smooth Luxury Transitions */
@@ -44,7 +55,6 @@
   from {
     transform: scale(1);
   }
-
   to {
     transform: scale(1.1);
   }
@@ -53,7 +63,7 @@
 .swiper-pagination-bullet {
   width: 10px;
   height: 10px;
-  background: rgba(255,255,255,.5);
+  background: rgba(255, 255, 255, .5);
   opacity: 1;
 }
 

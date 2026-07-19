@@ -1,18 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { categories, products } from "../../data/categories";
 
 export default function CategoriesSection() {
-  // 1. States for filtering and pagination
-  const [activeCategory, setActiveCategory] = useState("all"); // Default state sets to "all" for random shuffle
-  const [visibleCount, setVisibleCount] = useState(6); // Initial count is 6 products
+  const [activeCategory, setActiveCategory] = useState("all"); 
+  const [visibleCount, setVisibleCount] = useState(6); 
 
-  // 2. Shuffle array logic to get randomized items on initial component mount
   const randomizedProducts = useMemo(() => {
     return [...products].sort(() => Math.random() - 0.5);
   }, []);
 
-  // 3. Filter items based on active tabs (Randomized array if "all", regular filter if category slug)
   const filteredProducts = useMemo(() => {
     if (activeCategory === "all") {
       return randomizedProducts;
@@ -20,10 +17,8 @@ export default function CategoriesSection() {
     return products.filter((product) => product.categorySlug === activeCategory);
   }, [activeCategory, randomizedProducts]);
 
-  // Slice the array based on "See More" limit
   const displayedProducts = filteredProducts.slice(0, visibleCount);
 
-  // Reset the product count back to 6 whenever user switches category tabs
   const handleCategoryChange = (slug) => {
     setActiveCategory(slug);
     setVisibleCount(6); 
@@ -34,23 +29,42 @@ export default function CategoriesSection() {
   };
 
   return (
-    <section className="relative py-24 bg-[#FAF9F5] font-sans flex flex-col items-center overflow-hidden">
+    <section className="relative py-24 bg-[#FAF9F5] dark:bg-zinc-950 font-sans flex flex-col items-center overflow-hidden transition-colors duration-500">
       
-      {/* Lining Texture */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-40 hidden md:block"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px',
-          maskImage: 'linear-gradient(to bottom right, rgba(0,0,0,1), rgba(0,0,0,0.1))',
-          WebkitMaskImage: 'linear-gradient(to bottom right, rgba(0,0,0,1), rgba(0,0,0,0.1))'
-        }}
-      />
-
-      <div className="absolute left-[8%] top-0 w-[1px] h-full bg-gray-200 opacity-70 hidden xl:block" />
+      {/* Premium Luxury Curved Wave Background Element (Half Screen) */}
+      {/* Premium Topographic Contour Lines Background Element (Half Screen) */}
+<div className="absolute inset-y-0 right-0 w-full md:w-1/2 pointer-events-none z-0 overflow-hidden opacity-30 dark:opacity-15 transition-all duration-500 flex items-center justify-end">
+  <svg 
+    className="h-full w-auto min-w-[300px] md:min-w-[500px] object-right"
+    viewBox="0 0 500 1000" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Group applied with your signature Red color */}
+    <g stroke="#b31919" strokeWidth="1.5" strokeLinecap="round" opacity="0.85">
+      {/* Line 1 (Outer Most Left Curve) */}
+      <path d="M500 100 C350 200 200 250 150 400 C100 550 250 650 200 750 C160 830 250 900 500 950" />
+      
+      {/* Line 2 */}
+      <path d="M500 130 C380 220 240 270 190 410 C140 550 280 640 240 740 C200 820 280 890 500 930" />
+      
+      {/* Line 3 */}
+      <path d="M500 160 C410 240 280 290 230 420 C180 550 310 630 280 730 C240 810 310 880 500 910" />
+      
+      {/* Line 4 */}
+      <path d="M500 190 C440 260 320 310 270 430 C220 550 340 620 320 720 C280 800 340 870 500 890" />
+      
+      {/* Line 5 */}
+      <path d="M500 220 C470 280 360 330 310 440 C260 550 370 610 360 710 C320 790 370 860 500 870" />
+      
+      {/* Line 6 */}
+      <path d="M500 250 C490 300 400 350 350 450 C300 550 400 600 400 700 C360 780 400 850 500 850" />
+      
+      {/* Line 7 (Inner Most Right Curve) */}
+      <path d="M500 280 C500 320 440 370 390 460 C340 550 430 590 440 690 C400 770 430 840 500 830" />
+    </g>
+  </svg>
+</div>
 
       {/* Main Container */}
       <div className="relative z-10 max-w-7xl w-full px-6 xl:pl-24">
@@ -63,42 +77,42 @@ export default function CategoriesSection() {
           className="text-left mb-12 relative"
         >
           <div className="absolute -left-5 top-2 w-1.5 h-7 bg-[#b31919] hidden xl:block" />
-          <span className="text-[#b31919] font-bold text-lg tracking-wide block mb-1">
+          <span className="text-[#b31919] dark:text-red-500 font-bold text-lg tracking-wide block mb-1">
             Our Collection
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-black leading-tight mb-4">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-black dark:text-white leading-tight mb-4">
             Explore Door Categories
           </h2>
-          <p className="text-gray-600 text-sm md:text-base max-w-2xl leading-relaxed">
+          <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base max-w-2xl leading-relaxed">
             Browse our premium range of architectural doors designed for luxury homes and commercial spaces.
           </p>
         </motion.div>
 
-        {/* Categories Carousel/Slider Viewport */}
+        {/* Categories Slider */}
         <div className="flex space-x-6 overflow-x-auto pb-6 mb-14 scrollbar-none snap-x">
           
-          {/* Naya Custom Tab: "ALL COLLECTION" to reset filters back to random state */}
+          {/* ALL Tab */}
           <div
             onClick={() => handleCategoryChange("all")}
             className="flex flex-col items-center cursor-pointer min-w-[130px] md:min-w-[150px] snap-start select-none group"
           >
             <div 
-              className={`w-[120px] h-[150px] rounded-[18px] bg-white border-2 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 ${
+              className={`w-[120px] h-[150px] rounded-[18px] bg-white dark:bg-zinc-900 border-2 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 ${
                 activeCategory === "all" 
-                  ? "border-[#b31919] shadow-lg scale-105" 
-                  : "border-gray-200 group-hover:border-gray-400"
+                  ? "border-[#b31919] dark:border-red-500 shadow-lg scale-105" 
+                  : "border-gray-200 dark:border-zinc-800 group-hover:border-gray-400 dark:group-hover:border-zinc-600"
               }`}
             >
-              <div className="font-extrabold text-2xl text-gray-300 group-hover:text-[#b31919] transition-colors">ALL</div>
+              <div className="font-extrabold text-2xl text-gray-300 dark:text-zinc-700 group-hover:text-[#b31919] dark:group-hover:text-red-500 transition-colors">ALL</div>
             </div>
             <span className={`mt-3 text-xs md:text-sm font-black tracking-wide text-center transition-colors ${
-              activeCategory === "all" ? "text-[#b31919]" : "text-gray-900"
+              activeCategory === "all" ? "text-[#b31919] dark:text-red-500" : "text-gray-900 dark:text-gray-100"
             }`}>
               ALL DOORS
             </span>
           </div>
 
-          {/* Dynamic Categories Cards */}
+          {/* Dynamic Category Cards */}
           {categories.map((cat) => {
             const isActive = activeCategory === cat.slug;
             return (
@@ -108,10 +122,10 @@ export default function CategoriesSection() {
                 className="flex flex-col items-center cursor-pointer min-w-[130px] md:min-w-[150px] snap-start select-none group"
               >
                 <div 
-                  className={`w-[120px] h-[150px] rounded-[18px] bg-white border-2 overflow-hidden p-2 flex items-center justify-center transition-all duration-300 ${
+                  className={`w-[120px] h-[150px] rounded-[18px] bg-white dark:bg-zinc-900 border-2 overflow-hidden p-2 flex items-center justify-center transition-all duration-300 ${
                     isActive 
-                      ? "border-[#b31919] shadow-lg scale-105" 
-                      : "border-gray-200 group-hover:border-gray-400"
+                      ? "border-[#b31919] dark:border-red-500 shadow-lg scale-105" 
+                      : "border-gray-200 dark:border-zinc-800 group-hover:border-gray-400 dark:group-hover:border-zinc-600"
                   }`}
                 >
                   <img
@@ -121,7 +135,7 @@ export default function CategoriesSection() {
                   />
                 </div>
                 <span className={`mt-3 text-xs md:text-sm font-black tracking-wide text-center transition-colors ${
-                  isActive ? "text-[#b31919]" : "text-gray-900"
+                  isActive ? "text-[#b31919] dark:text-red-500" : "text-gray-900 dark:text-gray-100"
                 }`}>
                   {cat.name}
                 </span>
@@ -130,7 +144,7 @@ export default function CategoriesSection() {
           })}
         </div>
 
-        {/* Products Display Grid */}
+        {/* Products Grid */}
         <motion.div 
           layout 
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8"
@@ -147,14 +161,14 @@ export default function CategoriesSection() {
                 onClick={() => handleProductClick(product.id)}
                 className="flex flex-col cursor-pointer group"
               >
-                <div className="w-full aspect-[4/5] rounded-[22px] bg-white border border-gray-100 overflow-hidden shadow-sm group-hover:shadow-xl transition-all duration-300 p-2">
+                <div className="w-full aspect-[4/5] rounded-[22px] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 overflow-hidden shadow-sm group-hover:shadow-xl dark:group-hover:shadow-zinc-950/50 transition-all duration-300 p-2">
                   <img
                     src={product.image}
                     alt={product.name}
                     className="w-full h-full object-cover rounded-[16px] transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                 </div>
-                <h3 className="mt-4 text-sm md:text-base font-extrabold text-black group-hover:text-[#b31919] transition-colors pl-1">
+                <h3 className="mt-4 text-sm md:text-base font-extrabold text-black dark:text-white group-hover:text-[#b31919] dark:group-hover:text-red-500 transition-colors pl-1">
                   {product.name}
                 </h3>
               </motion.div>
@@ -162,13 +176,13 @@ export default function CategoriesSection() {
           </AnimatePresence>
         </motion.div>
 
-        {/* 4. See More / Reveal Button Control */}
+        {/* See More Button */}
         {filteredProducts.length > visibleCount && (
           <div className="w-full flex justify-center mt-16">
             <button
               type="button"
-              onClick={() => setVisibleCount((prev) => prev + 6)} // Reveals 6 more products on click
-              className="px-8 py-3.5 bg-black hover:bg-[#b31919] text-white font-bold text-sm md:text-base rounded-full tracking-wide shadow-md hover:shadow-xl transition-all duration-300 active:scale-95"
+              onClick={() => setVisibleCount((prev) => prev + 6)}
+              className="px-8 py-3.5 bg-black dark:bg-zinc-800 hover:bg-[#b31919] dark:hover:bg-red-700 text-white font-bold text-sm md:text-base rounded-full tracking-wide shadow-md hover:shadow-xl transition-all duration-300 active:scale-95"
             >
               See More Collection
             </button>
