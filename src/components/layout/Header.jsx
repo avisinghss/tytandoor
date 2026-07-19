@@ -3,11 +3,9 @@ import { Menu, X } from "lucide-react";
 
 const navItems = [
   "Home",
-  "About",
   "Products",
-  "Gallery",
-  "Blogs",
   "Contact",
+  "About",
 ];
 
 export default function Header() {
