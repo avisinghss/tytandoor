@@ -34,14 +34,24 @@ export default function Footer() {
                 <span>Ahmedabad, Gujarat</span>
               </div> */}
 
-              <div className="flex items-center gap-3">
-                <Phone size={18} />
-                <span>+91 XXXXX XXXXX</span>
-              </div>
+             <div className="flex items-center gap-3">
+  <Phone size={18} />
+  <a 
+    href="tel:+91XXXXXXXXXX" 
+    className="hover:underline text-inherit"
+  >
+    +91 XXXXX XXXXX
+  </a>
+</div>
 
               <div className="flex items-center gap-3">
                 <Mail size={18} />
-                <span>info@tytandoor.com</span>
+                <a 
+                  href="mailto:info@tytandoor.com" 
+                  className="hover:underline text-inherit"
+                >
+                  info@tytandoor.com
+                </a>
               </div>
             </div>
           </div>
