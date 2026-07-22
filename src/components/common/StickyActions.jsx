@@ -24,7 +24,7 @@ export default function StickyActions() {
         href={`https://wa.me/${whatsAppNumber}?text=${whatsAppMessage}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center w-14 h-14 bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-lg transition-all duration-300 active:scale-95 rounded-r-[24px] border-y border-r border-white/10"
+        className="flex items-center justify-center w-14 h-14  bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-lg transition-all duration-300 active:scale-95 rounded-r-[24px] border-y border-r border-white/10"
         aria-label="Chat on WhatsApp"
       >
         <MessageCircleCode size={26} />

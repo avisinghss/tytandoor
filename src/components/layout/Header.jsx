@@ -41,10 +41,10 @@ export default function Header() {
           />
           <div>
             <h1 className="font-cinzel text-2xl font-black tracking-wide text-black dark:text-white">
-              TYTAN DOOR
+              TYTAN
             </h1>
             <p className="font-cinzel text-xs uppercase tracking-[4px] text-red-700 dark:text-red-500">
-              Strength • Style • Security
+              —DOOR—
             </p>
           </div>
         </div>
