@@ -37,7 +37,7 @@ export default function StickyActions() {
   aria-label="Chat on WhatsApp"
 >
   <img 
-    src="../public/images/wa-icon.png" // Replace with your image URL or import path
+    src="/images/wa-icon.png" // Replace with your image URL or import path
     alt="WhatsApp" 
     className="w-7 h-7 object-contain" 
   />
