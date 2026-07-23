@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
-import ThemeToggle from "../common/ThemeToggle"; // Path check kar lein apne folder structure ke hisab se
+// If you are using react-router-dom, import Link:
+// import { Link } from "react-router-dom"; 
+import ThemeToggle from "../common/ThemeToggle";
 
+// Convert items into objects with proper routes
 const navItems = [
-  "Home",
-  "Products",
-  "Contact",
-  "About",
+  { label: "Home", path: "/" },
+  { label: "Products", path: "/products" },
+  { label: "Contact", path: "/contact" },
+  { label: "About", path: "/about" },
 ];
 
 export default function Header() {
@@ -33,7 +36,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto h-20 px-6 flex items-center justify-between">
 
         {/* Logo Section */}
-        <div className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3">
           <img 
             src="/logo.png" 
             alt="Company Logo" 
@@ -47,38 +50,32 @@ export default function Header() {
               —DOOR—
             </p>
           </div>
-        </div>
+        </a>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden lg:flex items-center gap-8 text-gray-800 dark:text-gray-200">
           {navItems.map((item) => (
             <a
-              key={item}
-              href="/"
+              key={item.label}
+              href={item.path} /* 👈 Updated path */
               className="font-medium hover:text-red-700 dark:hover:text-red-500 transition"
             >
-              {item}
+              {item.label}
             </a>
           ))}
         </nav>
 
-        {/* Desktop Right Side Area (Theme Changer + Button) */}
+        {/* Desktop Right Side Area */}
         <div className="hidden lg:flex items-center gap-6">
-          {/* Theme Button visible inside PC Page View */}
           <ThemeToggle />
-          
           <button className="bg-red-700 hover:bg-black dark:hover:bg-zinc-800 transition text-white px-6 py-3 rounded-full font-semibold shadow-lg">
             Enquire Now
           </button>
         </div>
 
-        {/* Mobile Action Controls Wrapper (Visible on Phone and Tab responsive layouts) */}
+        {/* Mobile Action Controls */}
         <div className="flex items-center gap-4 lg:hidden">
-          
-          {/* Theme Switcher exactly near Hamburger Menu */}
           <ThemeToggle />
-
-          {/* Hamburger Menu Action Button */}
           <button
             className="text-black dark:text-white focus:outline-none"
             onClick={() => setMobileMenu(!mobileMenu)}
@@ -94,11 +91,12 @@ export default function Header() {
         <div className="lg:hidden bg-white dark:bg-zinc-900 border-t border-gray-100 dark:border-zinc-800 shadow-xl transition-colors">
           {navItems.map((item) => (
             <a
-              key={item}
-              href="/"
+              key={item.label}
+              href={item.path} /* 👈 Updated path */
+              onClick={() => setMobileMenu(false)} /* Closes drawer on link click */
               className="block px-6 py-4 border-b border-gray-100 dark:border-zinc-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
             >
-              {item}
+              {item.label}
             </a>
           ))}
 
