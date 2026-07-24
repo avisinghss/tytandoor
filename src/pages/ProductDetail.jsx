@@ -1,19 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { products } from '../data/products';
+import { getProducts } from '../services/productService'; // Live Supabase Service
 
 function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
 
+  // Data States
+  const [productsList, setProductsList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   // State to manage visible similar products ("See More" feature)
   const [visibleCount, setVisibleCount] = useState(2);
 
-  // Match product by slug OR String/Number ID
-  const product = products.find(
+  // Fetch products from Supabase
+  useEffect(() => {
+    async function fetchLiveProducts() {
+      setLoading(true);
+      const data = await getProducts();
+      setProductsList(data || []);
+      setLoading(false);
+    }
+    fetchLiveProducts();
+  }, [slug]); // Re-fetch or re-evaluate if slug changes
+
+  // Match product by slug OR String/Number ID from live data
+  const product = productsList.find(
     (p) => p.slug === slug || String(p.id) === slug
   );
 
+  // Loading State
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+        <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-zinc-500 text-sm font-semibold">Loading product details...</p>
+      </div>
+    );
+  }
+
+  // Not Found State
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
@@ -34,7 +60,7 @@ function ProductDetail() {
   }
 
   // Filter similar products by category or categorySlug
-  const similarProducts = products.filter(
+  const similarProducts = productsList.filter(
     (p) =>
       (p.category === product.category || p.categorySlug === product.categorySlug) &&
       p.slug !== product.slug &&
@@ -62,14 +88,17 @@ function ProductDetail() {
         {/* Hero Section: Product Showcase */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mb-16">
           
-          {/* Left Column: Image Container (Responsive Span) */}
+          {/* Left Column: Image Container */}
           <div className="lg:col-span-6 xl:col-span-7">
             <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-6 md:p-10 flex items-center justify-center shadow-sm relative group overflow-hidden">
               <div className="w-full aspect-[3/4] max-h-[550px] flex items-center justify-center">
                 <img
-                  src={product.image}
+                  src={product.image || "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600"}
                   alt={product.name}
                   className="w-full h-full object-contain rounded-xl transition-transform duration-500 group-hover:scale-105"
+                  onError={(e) => {
+                    e.target.src = "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600";
+                  }}
                 />
               </div>
             </div>
@@ -111,7 +140,7 @@ function ProductDetail() {
                 </p>
               </section>
 
-              {/* Dynamic Feature Badges (Rendered if available in data) */}
+              {/* Dynamic Feature Badges */}
               {product.features && product.features.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">
@@ -149,7 +178,7 @@ function ProductDetail() {
               </div>
             </div>
 
-            {/* Grid layout: 2 cols on Mobile, 3 on Tablet, 4 on Desktop */}
+            {/* Grid layout */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {similarProducts.slice(0, visibleCount).map((item) => (
                 <Link
@@ -159,9 +188,12 @@ function ProductDetail() {
                 >
                   <div className="bg-slate-50 dark:bg-zinc-950 rounded-xl p-3 mb-3 aspect-[3/4] flex items-center justify-center overflow-hidden">
                     <img
-                      src={item.image}
+                      src={item.image || "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600"}
                       alt={item.name}
                       className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.target.src = "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600";
+                      }}
                     />
                   </div>
                   <h4 className="text-xs md:text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-[#b31919] dark:group-hover:text-red-500 transition-colors line-clamp-2">

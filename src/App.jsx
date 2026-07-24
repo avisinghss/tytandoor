@@ -1,9 +1,29 @@
 // src/App.jsx
 
 import React from "react";
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter as Router, useLocation } from "react-router-dom";
 import Header from "./components/layout/Header";
 import AppRoutes from "./routes/AppRoutes";
+
+// Helper component inside App to check current path
+function MainContent() {
+  const location = useLocation();
+  
+  // Check if current route is an Admin route
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+  return (
+    <>
+      {/* Show Header ONLY if NOT on admin routes */}
+      {!isAdminRoute && <Header />}
+
+      {/* Remove pt-20 padding when on Admin panel */}
+      <main className={isAdminRoute ? "" : "pt-20"}>
+        <AppRoutes />
+      </main>
+    </>
+  );
+}
 
 function App() {
   return (
@@ -17,12 +37,7 @@ function App() {
           `,
         }}
       >
-        <Header />
-
-        {/* Header height = 80px */}
-        <main className="pt-20">
-          <AppRoutes />
-        </main>
+        <MainContent />
       </div>
     </Router>
   );

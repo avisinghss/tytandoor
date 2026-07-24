@@ -1,23 +1,43 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
-import { categories, products } from "../../data/categories";
+import { useNavigate } from "react-router-dom";
+import { getCategories, getProducts } from "../../services/productService"; // Dynamic Fetch API
 
 export default function CategoriesSection() {
-  const navigate = useNavigate(); // 2. Initialize navigate
+  const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [activeCategory, setActiveCategory] = useState("all"); 
   const [visibleCount, setVisibleCount] = useState(6); 
 
+  // Fetch Live Data from Supabase
+  useEffect(() => {
+    async function loadLiveData() {
+      setLoading(true);
+      const [catsData, prodsData] = await Promise.all([
+        getCategories(),
+        getProducts()
+      ]);
+      setCategories(catsData || []);
+      setProducts(prodsData || []);
+      setLoading(false);
+    }
+    loadLiveData();
+  }, []);
+
+  // Shuffle products only once when products array updates
   const randomizedProducts = useMemo(() => {
     return [...products].sort(() => Math.random() - 0.5);
-  }, []);
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     if (activeCategory === "all") {
       return randomizedProducts;
     }
     return products.filter((product) => product.categorySlug === activeCategory);
-  }, [activeCategory, randomizedProducts]);
+  }, [activeCategory, randomizedProducts, products]);
 
   const displayedProducts = filteredProducts.slice(0, visibleCount);
 
@@ -26,9 +46,7 @@ export default function CategoriesSection() {
     setVisibleCount(6); 
   };
 
-  // 3. Updated click handler to navigate using product.slug
   const handleProductClick = (product) => {
-    // If your product objects have a slug property:
     const targetSlug = product.slug || product.id; 
     navigate(`/products/${targetSlug}`);
   };
@@ -134,45 +152,56 @@ export default function CategoriesSection() {
           })}
         </div>
 
-        {/* Products Grid */}
-        <motion.div 
-          layout 
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8"
-        >
-          <AnimatePresence mode="popLayout">
-            {displayedProducts.map((product) => (
-              <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.25 }}
-                key={product.id}
-                onClick={() => handleProductClick(product)} // 4. Pass the entire product object here
-                className="flex flex-col cursor-pointer group"
-              >
-                <div className="w-full aspect-[4/5] rounded-[22px] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 overflow-hidden shadow-sm group-hover:shadow-xl dark:group-hover:shadow-zinc-950/50 transition-all duration-300 p-2">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover rounded-[16px] transition-transform duration-500 group-hover:scale-[1.02]"
-                  />
-                </div>
-                <h3 className="mt-4 text-sm md:text-base font-extrabold text-black dark:text-white group-hover:text-[#b31919] dark:group-hover:text-red-500 transition-colors pl-1">
-                  {product.name}
-                </h3>
-              </motion.div>
+        {/* Loading Skeleton / Products Grid */}
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="animate-pulse space-y-3">
+                <div className="w-full aspect-[4/5] bg-gray-200 dark:bg-zinc-800 rounded-[22px]"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded-md w-3/4"></div>
+              </div>
             ))}
-          </AnimatePresence>
-        </motion.div>
+          </div>
+        ) : (
+          <motion.div 
+            layout 
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8"
+          >
+            <AnimatePresence mode="popLayout">
+              {displayedProducts.map((product) => (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.25 }}
+                  key={product.id}
+                  onClick={() => handleProductClick(product)}
+                  className="flex flex-col cursor-pointer group"
+                >
+                  <div className="w-full aspect-[4/5] rounded-[22px] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 overflow-hidden shadow-sm group-hover:shadow-xl dark:group-hover:shadow-zinc-950/50 transition-all duration-300 p-2">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover rounded-[16px] transition-transform duration-500 group-hover:scale-[1.02]"
+                    />
+                  </div>
+                  <h3 className="mt-4 text-sm md:text-base font-extrabold text-black dark:text-white group-hover:text-[#b31919] dark:group-hover:text-red-500 transition-colors pl-1">
+                    {product.name}
+                  </h3>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* See More Button */}
-        {filteredProducts.length > visibleCount && (
+        {!loading && filteredProducts.length > visibleCount && (
           <div className="w-full flex justify-center mt-16">
             <button
               type="button"
               onClick={() => setVisibleCount((prev) => prev + 6)}
-              className="px-8 py-3.5 bg-black dark:bg-zinc-800 hover:bg-[#b31919] dark:hover:bg-red-700 text-white font-bold text-sm md:text-base rounded-full tracking-wide shadow-md hover:shadow-xl transition-all duration-300 active:scale-95"
+              className="px-8 py-3.5 bg-black dark:bg-zinc-800 hover:bg-[#b31919] dark:hover:bg-red-700 text-white font-bold text-sm md:text-base rounded-full tracking-wide shadow-md hover:shadow-xl transition-all duration-300 active:scale-95 cursor-pointer"
             >
               See More Collection
             </button>
