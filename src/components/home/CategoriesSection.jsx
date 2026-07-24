@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
 import { categories, products } from "../../data/categories";
 
 export default function CategoriesSection() {
+  const navigate = useNavigate(); // 2. Initialize navigate
   const [activeCategory, setActiveCategory] = useState("all"); 
   const [visibleCount, setVisibleCount] = useState(6); 
 
@@ -24,47 +26,35 @@ export default function CategoriesSection() {
     setVisibleCount(6); 
   };
 
-  const handleProductClick = (productId) => {
-    window.location.href = `/products/${productId}`;
+  // 3. Updated click handler to navigate using product.slug
+  const handleProductClick = (product) => {
+    // If your product objects have a slug property:
+    const targetSlug = product.slug || product.id; 
+    navigate(`/products/${targetSlug}`);
   };
 
   return (
     <section className="relative py-24 bg-[#FAF9F5] dark:bg-zinc-950 font-sans flex flex-col items-center overflow-hidden transition-colors duration-500">
       
-      {/* Premium Luxury Curved Wave Background Element (Half Screen) */}
-      {/* Premium Topographic Contour Lines Background Element (Half Screen) */}
-<div className="absolute inset-y-0 right-0 w-full md:w-1/2 pointer-events-none z-0 overflow-hidden opacity-30 dark:opacity-15 transition-all duration-500 flex items-center justify-end">
-  <svg 
-    className="h-full w-auto min-w-[300px] md:min-w-[500px] object-right"
-    viewBox="0 0 500 1000" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Group applied with your signature Red color */}
-    <g stroke="#b31919" strokeWidth="1.5" strokeLinecap="round" opacity="0.85">
-      {/* Line 1 (Outer Most Left Curve) */}
-      <path d="M500 100 C350 200 200 250 150 400 C100 550 250 650 200 750 C160 830 250 900 500 950" />
-      
-      {/* Line 2 */}
-      <path d="M500 130 C380 220 240 270 190 410 C140 550 280 640 240 740 C200 820 280 890 500 930" />
-      
-      {/* Line 3 */}
-      <path d="M500 160 C410 240 280 290 230 420 C180 550 310 630 280 730 C240 810 310 880 500 910" />
-      
-      {/* Line 4 */}
-      <path d="M500 190 C440 260 320 310 270 430 C220 550 340 620 320 720 C280 800 340 870 500 890" />
-      
-      {/* Line 5 */}
-      <path d="M500 220 C470 280 360 330 310 440 C260 550 370 610 360 710 C320 790 370 860 500 870" />
-      
-      {/* Line 6 */}
-      <path d="M500 250 C490 300 400 350 350 450 C300 550 400 600 400 700 C360 780 400 850 500 850" />
-      
-      {/* Line 7 (Inner Most Right Curve) */}
-      <path d="M500 280 C500 320 440 370 390 460 C340 550 430 590 440 690 C400 770 430 840 500 830" />
-    </g>
-  </svg>
-</div>
+      {/* Background SVG Wave */}
+      <div className="absolute inset-y-0 right-0 w-full md:w-1/2 pointer-events-none z-0 overflow-hidden opacity-30 dark:opacity-15 transition-all duration-500 flex items-center justify-end">
+        <svg 
+          className="h-full w-auto min-w-[300px] md:min-w-[500px] object-right"
+          viewBox="0 0 500 1000" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g stroke="#b31919" strokeWidth="1.5" strokeLinecap="round" opacity="0.85">
+            <path d="M500 100 C350 200 200 250 150 400 C100 550 250 650 200 750 C160 830 250 900 500 950" />
+            <path d="M500 130 C380 220 240 270 190 410 C140 550 280 640 240 740 C200 820 280 890 500 930" />
+            <path d="M500 160 C410 240 280 290 230 420 C180 550 310 630 280 730 C240 810 310 880 500 910" />
+            <path d="M500 190 C440 260 320 310 270 430 C220 550 340 620 320 720 C280 800 340 870 500 890" />
+            <path d="M500 220 C470 280 360 330 310 440 C260 550 370 610 360 710 C320 790 370 860 500 870" />
+            <path d="M500 250 C490 300 400 350 350 450 C300 550 400 600 400 700 C360 780 400 850 500 850" />
+            <path d="M500 280 C500 320 440 370 390 460 C340 550 430 590 440 690 C400 770 430 840 500 830" />
+          </g>
+        </svg>
+      </div>
 
       {/* Main Container */}
       <div className="relative z-10 max-w-7xl w-full px-6 xl:pl-24">
@@ -158,7 +148,7 @@ export default function CategoriesSection() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.25 }}
                 key={product.id}
-                onClick={() => handleProductClick(product.id)}
+                onClick={() => handleProductClick(product)} // 4. Pass the entire product object here
                 className="flex flex-col cursor-pointer group"
               >
                 <div className="w-full aspect-[4/5] rounded-[22px] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 overflow-hidden shadow-sm group-hover:shadow-xl dark:group-hover:shadow-zinc-950/50 transition-all duration-300 p-2">

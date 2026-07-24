@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import products from "../../data/products";
+import {products} from "../../data/products";
 import ProductCard from "./ProductCard"; 
 
 export default function FeaturedProducts() {
