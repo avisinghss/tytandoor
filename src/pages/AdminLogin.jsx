@@ -130,9 +130,6 @@ export default function AdminLogin({ onLoginSuccess }) {
         <div className="flex flex-col gap-2 pt-2 text-center text-xs text-zinc-400 border-t border-zinc-800">
           {mode === 'login' && (
             <>
-              <button onClick={() => setMode('first_time')} className="hover:text-white transition">
-                First visit? Create Admin Password
-              </button>
               <button onClick={() => setMode('forgot')} className="hover:text-white transition">
                 Forgot Password?
               </button>

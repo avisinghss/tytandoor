@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Trash2, Package } from 'lucide-react';
+import { Plus, Trash2, Package, Heart } from 'lucide-react'; // 1. Heart import kiya
 
-export default function ProductsTab({ products, onOpenModal, onDeleteProduct }) {
+export default function ProductsTab({ products, onOpenModal, onDeleteProduct, onToggleFeatured }) {
   return (
     <div className="space-y-6">
       
@@ -67,6 +67,20 @@ export default function ProductsTab({ products, onOpenModal, onDeleteProduct }) 
                     {item.category}
                   </span>
                 )}
+
+                {/* 2. Heart / Favorite Badge Button */}
+                <button
+                  type="button"
+                  onClick={() => onToggleFeatured(item.id, item.is_featured)}
+                  className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 ${
+                    item.is_featured
+                      ? 'bg-red-600/90 text-white border-red-500 shadow-lg shadow-red-600/40'
+                      : 'bg-black/40 text-zinc-400 border-white/20 hover:text-white hover:bg-black/70'
+                  }`}
+                  title={item.is_featured ? "Remove from Featured" : "Mark as Featured"}
+                >
+                  <Heart size={16} fill={item.is_featured ? "currentColor" : "none"} />
+                </button>
               </div>
 
               {/* Product Info */}
