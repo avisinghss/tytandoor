@@ -8,8 +8,10 @@ import CallsTab from '../components/admin/CallsTab';
 import StaffTab from '../components/admin/StaffTab';
 import ProjectsTab from '../components/admin/ProjectsTab';
 import ProductsTab from '../components/admin/ProductsTab';
-import CategoriesTab from '../components/admin/CategoriesTab'; // Added Category Tab Component
+import CategoriesTab from '../components/admin/CategoriesTab';
 import AddProductModal from '../components/admin/AddProductModal';
+import AddStaffModal from '../components/admin/AddStaffModal'; // Added
+import AddProjectModal from '../components/admin/AddProjectModal'; // Added
 import DeleteConfirmModal from '../components/admin/DeleteConfirmModal';
 
 export default function AdminDashboard({ onLogout }) {
@@ -22,10 +24,12 @@ export default function AdminDashboard({ onLogout }) {
   const [staffList, setStaffList] = useState([]);
   const [projects, setProjects] = useState([]);
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]); // Added Category State
+  const [categories, setCategories] = useState([]);
 
   // Modal Visibility States
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isAddStaffOpen, setIsAddStaffOpen] = useState(false); // Added
+  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false); // Added
 
   // Filters & Selections
   const [timeFilter, setTimeFilter] = useState('all');
@@ -46,7 +50,7 @@ export default function AdminDashboard({ onLogout }) {
     fetchStaff();
     fetchProjects();
     fetchProducts();
-    fetchCategories(); // Added Fetch Categories
+    fetchCategories();
   }, []);
 
   // ---------------- FETCH DATA ----------------
@@ -213,7 +217,7 @@ export default function AdminDashboard({ onLogout }) {
           <nav className="space-y-2">
             {[
               { id: 'products', label: 'Products Collection', icon: PackagePlus },
-              { id: 'categories', label: 'Categories', icon: Layers }, // Category Navigation Added
+              { id: 'categories', label: 'Categories', icon: Layers },
               { id: 'enquiries', label: 'Enquiries', icon: MessageSquare },
               { id: 'calls', label: 'Call Requests', icon: Phone },
               { id: 'staff', label: 'Staff Directory', icon: Users },
@@ -282,7 +286,7 @@ export default function AdminDashboard({ onLogout }) {
         {activeTab === 'staff' && (
           <StaffTab
             staffList={staffList}
-            onOpenModal={() => {}}
+            onOpenModal={() => setIsAddStaffOpen(true)} // FIXED: Handled Open Action
             onDeleteStaff={handleDeleteStaff}
           />
         )}
@@ -290,7 +294,7 @@ export default function AdminDashboard({ onLogout }) {
         {activeTab === 'projects' && (
           <ProjectsTab
             projects={projects}
-            onOpenModal={() => {}}
+            onOpenModal={() => setIsAddProjectOpen(true)} // FIXED: Handled Open Action
             onToggleStatus={toggleProjectStatus}
             onDeleteProject={handleDeleteProject}
           />
@@ -301,6 +305,20 @@ export default function AdminDashboard({ onLogout }) {
           isOpen={isAddProductOpen}
           onClose={() => setIsAddProductOpen(false)}
           onProductAdded={fetchProducts}
+        />
+
+        {/* Global Add Staff Modal Popup */}
+        <AddStaffModal
+          isOpen={isAddStaffOpen}
+          onClose={() => setIsAddStaffOpen(false)}
+          onStaffAdded={fetchStaff}
+        />
+
+        {/* Global Add Project Modal Popup */}
+        <AddProjectModal
+          isOpen={isAddProjectOpen}
+          onClose={() => setIsAddProjectOpen(false)}
+          onProjectAdded={fetchProjects}
         />
 
         {/* Global Confirmation Delete Popup */}
