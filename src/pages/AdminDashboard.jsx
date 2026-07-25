@@ -10,8 +10,8 @@ import ProjectsTab from '../components/admin/ProjectsTab';
 import ProductsTab from '../components/admin/ProductsTab';
 import CategoriesTab from '../components/admin/CategoriesTab';
 import AddProductModal from '../components/admin/AddProductModal';
-import AddStaffModal from '../components/admin/AddStaffModal'; // Added
-import AddProjectModal from '../components/admin/AddProjectModal'; // Added
+import AddStaffModal from '../components/admin/AddStaffModal';
+import AddProjectModal from '../components/admin/AddProjectModal';
 import DeleteConfirmModal from '../components/admin/DeleteConfirmModal';
 
 export default function AdminDashboard({ onLogout }) {
@@ -28,8 +28,8 @@ export default function AdminDashboard({ onLogout }) {
 
   // Modal Visibility States
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
-  const [isAddStaffOpen, setIsAddStaffOpen] = useState(false); // Added
-  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false); // Added
+  const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
+  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
 
   // Filters & Selections
   const [timeFilter, setTimeFilter] = useState('all');
@@ -82,6 +82,30 @@ export default function AdminDashboard({ onLogout }) {
   const fetchCategories = async () => {
     const { data } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
     if (data) setCategories(data);
+  };
+
+  // ---------------- FEATURED TOGGLE HANDLER (ADDED) ----------------
+  const toggleFeaturedStatus = async (id, currentStatus) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ is_featured: !currentStatus })
+        .eq('id', id);
+
+      if (error) {
+        console.error("Error toggling featured status:", error.message);
+        return;
+      }
+
+      // UI update bina full page reload ke
+      setProducts((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, is_featured: !currentStatus } : item
+        )
+      );
+    } catch (err) {
+      console.error("Unexpected error in toggleFeaturedStatus:", err);
+    }
   };
 
   // ---------------- FILTER & EXPORT ----------------
@@ -254,6 +278,7 @@ export default function AdminDashboard({ onLogout }) {
             products={products}
             onOpenModal={() => setIsAddProductOpen(true)}
             onDeleteProduct={handleDeleteProduct}
+            onToggleFeatured={toggleFeaturedStatus}  /* Added prop here */
           />
         )}
 
@@ -286,7 +311,7 @@ export default function AdminDashboard({ onLogout }) {
         {activeTab === 'staff' && (
           <StaffTab
             staffList={staffList}
-            onOpenModal={() => setIsAddStaffOpen(true)} // FIXED: Handled Open Action
+            onOpenModal={() => setIsAddStaffOpen(true)}
             onDeleteStaff={handleDeleteStaff}
           />
         )}
@@ -294,7 +319,7 @@ export default function AdminDashboard({ onLogout }) {
         {activeTab === 'projects' && (
           <ProjectsTab
             projects={projects}
-            onOpenModal={() => setIsAddProjectOpen(true)} // FIXED: Handled Open Action
+            onOpenModal={() => setIsAddProjectOpen(true)}
             onToggleStatus={toggleProjectStatus}
             onDeleteProject={handleDeleteProject}
           />

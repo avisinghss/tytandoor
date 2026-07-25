@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductCard from "./ProductCard"; 
-import { getProducts } from "../../services/productService"; // Dynamic Supabase Service
+// Step 4: Import getFeaturedProducts instead of getProducts
+import { getFeaturedProducts, getProducts } from "../../services/productService"; 
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState([]);
@@ -9,11 +10,21 @@ export default function FeaturedProducts() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // 1. Fetch Live Products from Supabase
+  // 1. Fetch Featured/Heart-Marked Products from Supabase
   useEffect(() => {
     async function loadFeaturedProducts() {
       setLoading(true);
-      const data = await getProducts();
+      
+      let data = [];
+      // Preference: Pehle getFeaturedProducts se fetch karein
+      if (typeof getFeaturedProducts === 'function') {
+        data = await getFeaturedProducts();
+      } else {
+        // Fallback: Agar getFeaturedProducts available na ho toh client side filter karein
+        const allData = await getProducts();
+        data = (allData || []).filter(item => item.is_featured);
+      }
+
       setProducts(data || []);
       setLoading(false);
     }
@@ -58,7 +69,7 @@ export default function FeaturedProducts() {
     );
   }
 
-  // Fallback if no products exist
+  // Fallback if no featured products exist
   if (!products || products.length === 0) {
     return (
       <div className="py-20 text-center text-zinc-500 font-semibold bg-[#F8F7F4] dark:bg-zinc-950">
