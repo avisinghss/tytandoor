@@ -29,7 +29,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
       setFormData((prev) => ({
         ...prev,
         category: data[0].name,
-        categorySlug: data[0].slug,
+        categorySlug: data[0].slug || data[0].category_slug || '',
       }));
     }
   };
@@ -39,7 +39,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
     setFormData((prev) => ({
       ...prev,
       category: categoryName,
-      categorySlug: selected ? selected.slug : '',
+      categorySlug: selected ? (selected.slug || selected.category_slug || '') : '',
     }));
   };
 
@@ -72,12 +72,12 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
 
       const cleanedFeatures = formData.features.filter((f) => f.trim() !== '');
 
-      // Payload - Supabase ID apne aap generate kar lega!
+      // Payload - Fixed column name mapping to match Supabase schema
       const payload = {
         name: formData.name,
         slug: generatedSlug,
         category: formData.category,
-        categorySlug: formData.categorySlug,
+        category_slug: formData.categorySlug, // FIXED: Using 'category_slug' instead of 'categorySlug'
         image: formData.image,
         description: formData.description,
         features: cleanedFeatures,
@@ -86,11 +86,11 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
       const { error } = await supabase.from('products').insert([payload]);
       if (error) throw error;
 
-      // Reset
+      // Reset Form State
       setFormData({
         name: '',
         category: categories[0]?.name || '',
-        categorySlug: categories[0]?.slug || '',
+        categorySlug: categories[0]?.slug || categories[0]?.category_slug || '',
         image: '',
         description: '',
         features: [''],
@@ -113,7 +113,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
         
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800 mb-4">
           <h3 className="text-lg font-black uppercase tracking-wide">Add New Product</h3>
-          <button onClick={onClose} className="p-1 text-zinc-400 hover:text-white rounded-lg">
+          <button onClick={onClose} className="p-1 text-zinc-400 hover:text-white rounded-lg cursor-pointer">
             <X size={20} />
           </button>
         </div>
@@ -126,7 +126,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
             <select
               value={formData.category}
               onChange={(e) => handleCategoryChange(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-600"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-600 cursor-pointer"
             >
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.name}>{cat.name}</option>
@@ -179,7 +179,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
               <button
                 type="button"
                 onClick={addFeatureInput}
-                className="text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-1"
+                className="text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-1 cursor-pointer"
               >
                 <Plus size={14} /> Add Feature
               </button>
@@ -199,7 +199,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
                     <button
                       type="button"
                       onClick={() => removeFeatureInput(index)}
-                      className="p-2 text-zinc-500 hover:text-red-500"
+                      className="p-2 text-zinc-500 hover:text-red-500 cursor-pointer"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -214,14 +214,14 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-zinc-800 text-xs font-bold text-zinc-400 hover:bg-zinc-800"
+              className="px-5 py-2.5 rounded-xl border border-zinc-800 text-xs font-bold text-zinc-400 hover:bg-zinc-800 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-2"
+              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {submitting && <Loader2 size={14} className="animate-spin" />}
               <span>Save Product</span>
