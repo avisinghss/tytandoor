@@ -9,8 +9,8 @@ export default function CategoriesSection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [activeCategory, setActiveCategory] = useState("all"); 
-  const [visibleCount, setVisibleCount] = useState(6); 
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(6);
 
   // Fetch Live Data from Supabase
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function CategoriesSection() {
       try {
         const [catsData, prodsData] = await Promise.all([
           getCategories(),
-          getProducts()
+          getProducts(),
         ]);
         setCategories(catsData || []);
         setProducts(prodsData || []);
@@ -32,7 +32,7 @@ export default function CategoriesSection() {
     loadLiveData();
   }, []);
 
-  // Fisher-Yates Random Shuffle function
+  // Fisher-Yates Random Shuffle function for 'ALL' tab
   const shuffleArray = (array) => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -42,56 +42,83 @@ export default function CategoriesSection() {
     return shuffled;
   };
 
-  // Shuffle products whenever products are fetched
+  // Shuffle products whenever products array updates
   const randomizedProducts = useMemo(() => {
     if (!products.length) return [];
     return shuffleArray(products);
   }, [products]);
 
-  // Dynamic Category Filtering (Handles multiple property variations)
+  // Robust Category Filtering Logic (Handles NULLs, slugs, & raw category names)
   const filteredProducts = useMemo(() => {
     if (activeCategory === "all") {
       return randomizedProducts;
     }
-    
-    return products.filter((product) => {
-      // Supabase product object attributes check
-      const pCat = 
-        product.categorySlug || 
-        product.category_slug || 
-        product.category || 
-        product.category_id;
 
-      if (!pCat) return false;
+    // Helper to normalize strings for comparison ("Amez Door" -> "amez door", "amez-door" -> "amez door")
+    const normalize = (str) =>
+      String(str || "")
+        .toLowerCase()
+        .replace(/[-_]/g, " ")
+        .trim();
 
-      // Handle String matching or Object property if category is linked
-      const catString = typeof pCat === "object" ? (pCat.slug || pCat.name) : pCat;
-
-      return String(catString).toLowerCase() === String(activeCategory).toLowerCase();
+    // Active Category ki Details find karo (e.g. name = "Amez Door", slug = "amez-door")
+    const currentCatObj = categories.find((c) => {
+      const slugVal = c.slug || c.name || c.id;
+      return normalize(slugVal) === normalize(activeCategory);
     });
-  }, [activeCategory, randomizedProducts, products]);
+
+    // Match targets: [activeCategory, category.slug, category.name, category.id]
+    const searchTargets = [
+      activeCategory,
+      currentCatObj?.slug,
+      currentCatObj?.name,
+      currentCatObj?.id,
+    ]
+      .filter(Boolean)
+      .map(normalize);
+
+    return products.filter((product) => {
+      // Collect all potential category fields from Supabase row
+      const productCategoryFields = [
+        product.category,         // Holds "Amez Door"
+        product.category_slug,    // Holds "amez-door" (can be NULL)
+        product.categorySlug,     // Alternative property (can be NULL)
+        product.category_id,
+      ]
+        .filter(Boolean)
+        .map(normalize);
+
+      if (!productCategoryFields.length) return false;
+
+      // Check if ANY field in the product row matches ANY search target
+      return productCategoryFields.some((pVal) =>
+        searchTargets.some(
+          (sVal) => pVal === sVal || pVal.includes(sVal) || sVal.includes(pVal)
+        )
+      );
+    });
+  }, [activeCategory, randomizedProducts, products, categories]);
 
   const displayedProducts = filteredProducts.slice(0, visibleCount);
 
   const handleCategoryChange = (slug) => {
     setActiveCategory(slug);
-    setVisibleCount(6); 
+    setVisibleCount(6);
   };
 
   const handleProductClick = (product) => {
-    const targetSlug = product.slug || product.id; 
+    const targetSlug = product.slug || product.id;
     navigate(`/products/${targetSlug}`);
   };
 
   return (
     <section className="relative py-24 bg-[#FAF9F5] dark:bg-zinc-950 font-sans flex flex-col items-center overflow-hidden transition-colors duration-500">
-      
       {/* Background SVG Wave */}
       <div className="absolute inset-y-0 right-0 w-full md:w-1/2 pointer-events-none z-0 overflow-hidden opacity-30 dark:opacity-15 transition-all duration-500 flex items-center justify-end">
-        <svg 
+        <svg
           className="h-full w-auto min-w-[300px] md:min-w-[500px] object-right"
-          viewBox="0 0 500 1000" 
-          fill="none" 
+          viewBox="0 0 500 1000"
+          fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <g stroke="#b31919" strokeWidth="1.5" strokeLinecap="round" opacity="0.85">
@@ -108,7 +135,6 @@ export default function CategoriesSection() {
 
       {/* Main Container */}
       <div className="relative z-10 max-w-7xl w-full px-6 xl:pl-24">
-        
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -130,31 +156,36 @@ export default function CategoriesSection() {
 
         {/* Categories Slider */}
         <div className="flex space-x-6 overflow-x-auto pb-6 mb-14 scrollbar-none snap-x">
-          
           {/* ALL Tab */}
           <div
             onClick={() => handleCategoryChange("all")}
             className="flex flex-col items-center cursor-pointer min-w-[130px] md:min-w-[150px] snap-start select-none group"
           >
-            <div 
+            <div
               className={`w-[120px] h-[150px] rounded-[18px] bg-white dark:bg-zinc-900 border-2 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 ${
-                activeCategory === "all" 
-                  ? "border-[#b31919] dark:border-red-500 shadow-lg scale-105" 
+                activeCategory === "all"
+                  ? "border-[#b31919] dark:border-red-500 shadow-lg scale-105"
                   : "border-gray-200 dark:border-zinc-800 group-hover:border-gray-400 dark:group-hover:border-zinc-600"
               }`}
             >
-              <div className="font-extrabold text-2xl text-gray-300 dark:text-zinc-700 group-hover:text-[#b31919] dark:group-hover:text-red-500 transition-colors">ALL</div>
+              <div className="font-extrabold text-2xl text-gray-300 dark:text-zinc-700 group-hover:text-[#b31919] dark:group-hover:text-red-500 transition-colors">
+                ALL
+              </div>
             </div>
-            <span className={`mt-3 text-xs md:text-sm font-black tracking-wide text-center transition-colors ${
-              activeCategory === "all" ? "text-[#b31919] dark:text-red-500" : "text-gray-900 dark:text-gray-100"
-            }`}>
+            <span
+              className={`mt-3 text-xs md:text-sm font-black tracking-wide text-center transition-colors ${
+                activeCategory === "all"
+                  ? "text-[#b31919] dark:text-red-500"
+                  : "text-gray-900 dark:text-gray-100"
+              }`}
+            >
               ALL DOORS
             </span>
           </div>
 
           {/* Dynamic Category Cards */}
           {categories.map((cat) => {
-            const catSlug = cat.slug || cat.id;
+            const catSlug = cat.slug || cat.id || cat.name;
             const isActive = activeCategory === catSlug;
             return (
               <div
@@ -162,10 +193,10 @@ export default function CategoriesSection() {
                 onClick={() => handleCategoryChange(catSlug)}
                 className="flex flex-col items-center cursor-pointer min-w-[130px] md:min-w-[150px] snap-start select-none group"
               >
-                <div 
+                <div
                   className={`w-[120px] h-[150px] rounded-[18px] bg-white dark:bg-zinc-900 border-2 overflow-hidden p-2 flex items-center justify-center transition-all duration-300 ${
-                    isActive 
-                      ? "border-[#b31919] dark:border-red-500 shadow-lg scale-105" 
+                    isActive
+                      ? "border-[#b31919] dark:border-red-500 shadow-lg scale-105"
                       : "border-gray-200 dark:border-zinc-800 group-hover:border-gray-400 dark:group-hover:border-zinc-600"
                   }`}
                 >
@@ -175,9 +206,13 @@ export default function CategoriesSection() {
                     className="w-full h-full object-cover rounded-[12px]"
                   />
                 </div>
-                <span className={`mt-3 text-xs md:text-sm font-black tracking-wide text-center transition-colors ${
-                  isActive ? "text-[#b31919] dark:text-red-500" : "text-gray-900 dark:text-gray-100"
-                }`}>
+                <span
+                  className={`mt-3 text-xs md:text-sm font-black tracking-wide text-center transition-colors ${
+                    isActive
+                      ? "text-[#b31919] dark:text-red-500"
+                      : "text-gray-900 dark:text-gray-100"
+                  }`}
+                >
                   {cat.name}
                 </span>
               </div>
@@ -196,8 +231,8 @@ export default function CategoriesSection() {
             ))}
           </div>
         ) : (
-          <motion.div 
-            layout 
+          <motion.div
+            layout
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8"
           >
             <AnimatePresence mode="popLayout">
@@ -247,7 +282,6 @@ export default function CategoriesSection() {
             </button>
           </div>
         )}
-
       </div>
     </section>
   );
