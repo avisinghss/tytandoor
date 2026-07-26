@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getCategories, getProducts } from "../../services/productService"; // Dynamic Fetch API
+import { getCategories, getProducts } from "../../services/productService";
 
 export default function CategoriesSection() {
   const navigate = useNavigate();
@@ -16,27 +16,59 @@ export default function CategoriesSection() {
   useEffect(() => {
     async function loadLiveData() {
       setLoading(true);
-      const [catsData, prodsData] = await Promise.all([
-        getCategories(),
-        getProducts()
-      ]);
-      setCategories(catsData || []);
-      setProducts(prodsData || []);
-      setLoading(false);
+      try {
+        const [catsData, prodsData] = await Promise.all([
+          getCategories(),
+          getProducts()
+        ]);
+        setCategories(catsData || []);
+        setProducts(prodsData || []);
+      } catch (error) {
+        console.error("Error loading categories or products:", error);
+      } finally {
+        setLoading(false);
+      }
     }
     loadLiveData();
   }, []);
 
-  // Shuffle products only once when products array updates
+  // Fisher-Yates Random Shuffle function
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Shuffle products whenever products are fetched
   const randomizedProducts = useMemo(() => {
-    return [...products].sort(() => Math.random() - 0.5);
+    if (!products.length) return [];
+    return shuffleArray(products);
   }, [products]);
 
+  // Dynamic Category Filtering (Handles multiple property variations)
   const filteredProducts = useMemo(() => {
     if (activeCategory === "all") {
       return randomizedProducts;
     }
-    return products.filter((product) => product.categorySlug === activeCategory);
+    
+    return products.filter((product) => {
+      // Supabase product object attributes check
+      const pCat = 
+        product.categorySlug || 
+        product.category_slug || 
+        product.category || 
+        product.category_id;
+
+      if (!pCat) return false;
+
+      // Handle String matching or Object property if category is linked
+      const catString = typeof pCat === "object" ? (pCat.slug || pCat.name) : pCat;
+
+      return String(catString).toLowerCase() === String(activeCategory).toLowerCase();
+    });
   }, [activeCategory, randomizedProducts, products]);
 
   const displayedProducts = filteredProducts.slice(0, visibleCount);
@@ -122,11 +154,12 @@ export default function CategoriesSection() {
 
           {/* Dynamic Category Cards */}
           {categories.map((cat) => {
-            const isActive = activeCategory === cat.slug;
+            const catSlug = cat.slug || cat.id;
+            const isActive = activeCategory === catSlug;
             return (
               <div
-                key={cat.id}
-                onClick={() => handleCategoryChange(cat.slug)}
+                key={cat.id || catSlug}
+                onClick={() => handleCategoryChange(catSlug)}
                 className="flex flex-col items-center cursor-pointer min-w-[130px] md:min-w-[150px] snap-start select-none group"
               >
                 <div 
@@ -137,7 +170,7 @@ export default function CategoriesSection() {
                   }`}
                 >
                   <img
-                    src={cat.image}
+                    src={cat.image || cat.image_url}
                     alt={cat.name}
                     className="w-full h-full object-cover rounded-[12px]"
                   />
@@ -181,7 +214,7 @@ export default function CategoriesSection() {
                 >
                   <div className="w-full aspect-[4/5] rounded-[22px] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 overflow-hidden shadow-sm group-hover:shadow-xl dark:group-hover:shadow-zinc-950/50 transition-all duration-300 p-2">
                     <img
-                      src={product.image}
+                      src={product.image || product.image_url}
                       alt={product.name}
                       className="w-full h-full object-cover rounded-[16px] transition-transform duration-500 group-hover:scale-[1.02]"
                     />
@@ -193,6 +226,13 @@ export default function CategoriesSection() {
               ))}
             </AnimatePresence>
           </motion.div>
+        )}
+
+        {/* Empty State */}
+        {!loading && filteredProducts.length === 0 && (
+          <div className="text-center py-12 text-gray-500 dark:text-zinc-400">
+            No products found in this category.
+          </div>
         )}
 
         {/* See More Button */}
