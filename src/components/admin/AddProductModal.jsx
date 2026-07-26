@@ -25,7 +25,6 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
     const { data } = await supabase.from('categories').select('*');
     if (data && data.length > 0) {
       setCategories(data);
-      // Default set first category
       setFormData((prev) => ({
         ...prev,
         category: data[0].name,
@@ -63,7 +62,6 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
     setSubmitting(true);
 
     try {
-      // 1. Auto Generate Slug from Name (e.g. "SM 102 - AMEZ DOOR" -> "sm-102-amez-door")
       const generatedSlug = formData.name
         .toLowerCase()
         .trim()
@@ -72,12 +70,11 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
 
       const cleanedFeatures = formData.features.filter((f) => f.trim() !== '');
 
-      // Payload - Fixed column name mapping to match Supabase schema
+      // SAFE PAYLOAD: Standard columns matching base schema
       const payload = {
         name: formData.name,
         slug: generatedSlug,
         category: formData.category,
-        category_slug: formData.categorySlug, // FIXED: Using 'category_slug' instead of 'categorySlug'
         image: formData.image,
         description: formData.description,
         features: cleanedFeatures,
@@ -86,11 +83,11 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
       const { error } = await supabase.from('products').insert([payload]);
       if (error) throw error;
 
-      // Reset Form State
+      // Reset
       setFormData({
         name: '',
         category: categories[0]?.name || '',
-        categorySlug: categories[0]?.slug || categories[0]?.category_slug || '',
+        categorySlug: categories[0]?.slug || '',
         image: '',
         description: '',
         features: [''],
