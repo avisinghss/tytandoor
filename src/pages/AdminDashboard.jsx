@@ -84,7 +84,7 @@ export default function AdminDashboard({ onLogout }) {
     if (data) setCategories(data);
   };
 
-  // ---------------- FEATURED TOGGLE HANDLER (ADDED) ----------------
+  // ---------------- FEATURED TOGGLE HANDLER ----------------
   const toggleFeaturedStatus = async (id, currentStatus) => {
     try {
       const { error } = await supabase
@@ -97,7 +97,6 @@ export default function AdminDashboard({ onLogout }) {
         return;
       }
 
-      // UI update bina full page reload ke
       setProducts((prev) =>
         prev.map((item) =>
           item.id === id ? { ...item, is_featured: !currentStatus } : item
@@ -278,7 +277,8 @@ export default function AdminDashboard({ onLogout }) {
             products={products}
             onOpenModal={() => setIsAddProductOpen(true)}
             onDeleteProduct={handleDeleteProduct}
-            onToggleFeatured={toggleFeaturedStatus}  /* Added prop here */
+            onToggleFeatured={toggleFeaturedStatus}
+            onProductUpdated={fetchProducts} /* <-- Added prop to reload products on Edit */
           />
         )}
 

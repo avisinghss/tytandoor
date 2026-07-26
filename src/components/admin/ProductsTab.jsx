@@ -1,7 +1,10 @@
-import React from 'react';
-import { Plus, Trash2, Package, Heart } from 'lucide-react'; // 1. Heart import kiya
+import React, { useState } from 'react';
+import { Plus, Trash2, Package, Heart, Edit2 } from 'lucide-react';
+import EditProductModal from './EditProductModal';
 
-export default function ProductsTab({ products, onOpenModal, onDeleteProduct, onToggleFeatured }) {
+export default function ProductsTab({ products, onOpenModal, onDeleteProduct, onToggleFeatured, onProductUpdated }) {
+  const [editingProduct, setEditingProduct] = useState(null);
+
   return (
     <div className="space-y-6">
       
@@ -38,7 +41,7 @@ export default function ProductsTab({ products, onOpenModal, onDeleteProduct, on
           </p>
           <button
             onClick={onOpenModal}
-            className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition"
+            className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer"
           >
             + Add First Product
           </button>
@@ -68,7 +71,7 @@ export default function ProductsTab({ products, onOpenModal, onDeleteProduct, on
                   </span>
                 )}
 
-                {/* 2. Heart / Favorite Badge Button */}
+                {/* Heart / Favorite Badge Button */}
                 <button
                   type="button"
                   onClick={() => onToggleFeatured(item.id, item.is_featured)}
@@ -100,18 +103,43 @@ export default function ProductsTab({ products, onOpenModal, onDeleteProduct, on
                     ID: {String(item.id).substring(0, 8)}...
                   </span>
 
-                  <button
-                    onClick={() => onDeleteProduct(item.id, item.name)}
-                    className="p-2 text-zinc-400 hover:text-red-500 hover:bg-zinc-800 rounded-lg transition cursor-pointer"
-                    title="Delete Product"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {/* EDIT BUTTON */}
+                    <button
+                      onClick={() => setEditingProduct(item)}
+                      className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition cursor-pointer"
+                      title="Edit Product Details"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+
+                    {/* DELETE BUTTON */}
+                    <button
+                      onClick={() => onDeleteProduct(item.id, item.name)}
+                      className="p-2 text-zinc-400 hover:text-red-500 hover:bg-zinc-800 rounded-lg transition cursor-pointer"
+                      title="Delete Product"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Edit Product Modal Component */}
+      {editingProduct && (
+        <EditProductModal
+          isOpen={!!editingProduct}
+          product={editingProduct}
+          onClose={() => setEditingProduct(null)}
+          onProductUpdated={() => {
+            if (onProductUpdated) onProductUpdated();
+            setEditingProduct(null);
+          }}
+        />
       )}
     </div>
   );
