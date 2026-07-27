@@ -8,7 +8,6 @@ export default function HeroContent({ slide }) {
     <div key={slide.id} className="absolute inset-0 z-20 flex items-center">
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-12">
         <div className="max-w-3xl">
-console.log("HeroContent slide:", slide);
           {/* Subtitle Accent */}
           <motion.span
             initial={{ opacity: 0, y: 25 }}
