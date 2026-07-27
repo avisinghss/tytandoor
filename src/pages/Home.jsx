@@ -35,8 +35,8 @@ export default function Home() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
       />
-      <Testimonials />
       <WhyChooseUs />
+      <Testimonials />
       <CTASection />
       <Footer />
     </>

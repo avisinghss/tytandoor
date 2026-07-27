@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 
 export default function HeroContent({ slide }) {
+  console.log("HeroContent slide:", slide);
+
+
   return (
-    <div className="absolute inset-0 z-20 flex items-center">
+    <div key={slide.id} className="absolute inset-0 z-20 flex items-center">
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-12">
         <div className="max-w-3xl">
-
-          {/* Subtitle */}
+console.log("HeroContent slide:", slide);
+          {/* Subtitle Accent */}
           <motion.span
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
@@ -16,7 +19,7 @@ export default function HeroContent({ slide }) {
             Premium Door Manufacturer
           </motion.span>
 
-          {/* Title */}
+          {/* Main Title */}
           <motion.h1
             initial={{ opacity: 0, y: 35 }}
             animate={{ opacity: 1, y: 0 }}
@@ -54,11 +57,11 @@ export default function HeroContent({ slide }) {
             className="mt-10 flex flex-wrap gap-4"
           >
             <button className="rounded-full bg-red-700 px-8 py-4 text-white font-semibold shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-red-800">
-              {slide.primary}
+              {slide.primaryButton}
             </button>
 
             <button className="rounded-full border border-white/70 bg-white/10 px-8 py-4 text-white backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-black">
-              {slide.secondary}
+              {slide.secondaryButton}
             </button>
           </motion.div>
         </div>

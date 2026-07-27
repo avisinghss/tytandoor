@@ -12,7 +12,6 @@ import ScrollIndicator from "./ScrollIndicator";
 export default function HeroSlider() {
   return (
     <section className="relative h-screen overflow-hidden">
-
       <Swiper
         modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
@@ -52,8 +51,8 @@ export default function HeroSlider() {
         ))}
       </Swiper>
 
+      {/* Kept ScrollIndicator single instance here */}
       <ScrollIndicator />
-
     </section>
   );
 }
