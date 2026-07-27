@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
-// If you are using react-router-dom, import Link:
-// import { Link } from "react-router-dom"; 
+import { Menu, X, Headset } from "lucide-react";
+import { useNavigate } from "react-router-dom"; 
 import ThemeToggle from "../common/ThemeToggle";
 
 // Convert items into objects with proper routes
@@ -15,6 +14,7 @@ const navItems = [
 export default function Header() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +24,11 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleSupportClick = () => {
+    setMobileMenu(false); // Closes menu if clicked on mobile
+    navigate("/help");
+  };
 
   return (
     <header
@@ -39,7 +44,7 @@ export default function Header() {
         <a href="/" className="flex items-center gap-3">
           <img 
             src="/logo.png" 
-            alt="Company Logo" 
+            alt="TYTAN" 
             className="w-12 h-12 object-contain" 
           />
           <div>
@@ -57,7 +62,7 @@ export default function Header() {
           {navItems.map((item) => (
             <a
               key={item.label}
-              href={item.path} /* 👈 Updated path */
+              href={item.path}
               className="font-medium hover:text-red-700 dark:hover:text-red-500 transition"
             >
               {item.label}
@@ -68,8 +73,12 @@ export default function Header() {
         {/* Desktop Right Side Area */}
         <div className="hidden lg:flex items-center gap-6">
           <ThemeToggle />
-          <button className="bg-red-700 hover:bg-black dark:hover:bg-zinc-800 transition text-white px-6 py-3 rounded-full font-semibold shadow-lg">
-            Enquire Now
+          <button 
+            onClick={handleSupportClick}
+            className="inline-flex items-center justify-center gap-2 bg-red-700 hover:bg-black dark:hover:bg-zinc-800 transition text-white px-6 py-3 rounded-full font-semibold shadow-lg cursor-pointer"
+          >
+            <Headset className="w-5 h-5" />
+            <span>Customer Support</span>
           </button>
         </div>
 
@@ -92,8 +101,8 @@ export default function Header() {
           {navItems.map((item) => (
             <a
               key={item.label}
-              href={item.path} /* 👈 Updated path */
-              onClick={() => setMobileMenu(false)} /* Closes drawer on link click */
+              href={item.path}
+              onClick={() => setMobileMenu(false)}
               className="block px-6 py-4 border-b border-gray-100 dark:border-zinc-800 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
             >
               {item.label}
@@ -101,8 +110,12 @@ export default function Header() {
           ))}
 
           <div className="p-6">
-            <button className="w-full bg-red-700 text-white py-3 rounded-xl hover:bg-black dark:hover:bg-zinc-800 transition font-semibold">
-              Enquire Now
+            <button 
+              onClick={handleSupportClick}
+              className="w-full inline-flex items-center justify-center gap-2 bg-red-700 text-white py-3 rounded-xl hover:bg-black dark:hover:bg-zinc-800 transition font-semibold cursor-pointer"
+            >
+              <Headset className="w-5 h-5" />
+              <span>Customer Support</span>
             </button>
           </div>
         </div>
