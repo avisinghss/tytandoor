@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProducts } from '../services/productService'; // Live Supabase Service
+import ProductFeatures from '../components/home/ProductFeatures';
 
 function ProductDetail() {
   const { slug } = useParams();
@@ -22,7 +23,7 @@ function ProductDetail() {
       setLoading(false);
     }
     fetchLiveProducts();
-  }, [slug]); // Re-fetch or re-evaluate if slug changes
+  }, [slug]);
 
   // Match product by slug OR String/Number ID from live data
   const product = productsList.find(
@@ -86,7 +87,7 @@ function ProductDetail() {
         </div>
 
         {/* Hero Section: Product Showcase */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
           
           {/* Left Column: Image Container */}
           <div className="lg:col-span-6 xl:col-span-7">
@@ -160,6 +161,11 @@ function ProductDetail() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Product Features Section */}
+        <div className="my-12">
+          <ProductFeatures features={product.features} />
         </div>
 
         <hr className="border-t border-zinc-200 dark:border-zinc-800 my-12" />
