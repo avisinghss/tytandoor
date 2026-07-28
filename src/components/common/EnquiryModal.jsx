@@ -116,19 +116,13 @@ export default function EnquiryModal({ isOpen, onClose }) {
           {/* Grid Row 2: State & City */}
           <div className="grid grid-cols-2 gap-2">
             <select
-              name="state"
-              value={formData.state}
-              onChange={handleChange}
-              className="w-full bg-white text-zinc-800 text-xs sm:text-sm border border-zinc-300 rounded-lg px-2 py-2 focus:outline-none focus:border-[#e11d23] focus:ring-1 focus:ring-[#e11d23] transition"
-            >
-              <option value="">Select State</option>
-              <option value="Uttar Pradesh">Uttar Pradesh</option>
-              <option value="Delhi">Delhi NCR</option>
-              <option value="Maharashtra">Maharashtra</option>
-              <option value="Gujarat">Gujarat</option>
-              <option value="Karnataka">Karnataka</option>
-              <option value="Other">Other</option>
-            </select>
+  name="state"
+  value={formData.state || "Uttar Pradesh"}
+  disabled
+  className="w-full bg-zinc-100 text-zinc-800 text-xs sm:text-sm border border-zinc-300 rounded-lg px-2 py-2 focus:outline-none cursor-not-allowed appearance-none"
+>
+  <option value="Uttar Pradesh">Uttar Pradesh</option>
+</select>
 
             <select
               name="city"
@@ -138,9 +132,10 @@ export default function EnquiryModal({ isOpen, onClose }) {
             >
               <option value="">Select City</option>
               <option value="Ballia">Ballia</option>
-              <option value="Lucknow">Lucknow</option>
-              <option value="Varanasi">Varanasi</option>
-              <option value="Noida">Noida / Greater Noida</option>
+              <option value="Gorakhpur">Gorakhpur</option>
+              <option value="Mau">Mau</option>
+              <option value="Deoria">Deoria</option>
+              <option value="Azamgarh">Azamgarh</option>
               <option value="Other">Other</option>
             </select>
           </div>
@@ -192,11 +187,11 @@ export default function EnquiryModal({ isOpen, onClose }) {
           </a>
 
           <a
-            href="tel:+9118005722122"
+            href="tel:+9172680521101"
             className="flex items-center justify-center gap-1 border border-zinc-300 bg-zinc-50 text-zinc-900 font-bold text-[10px] sm:text-[11px] py-1.5 px-2 rounded-lg hover:bg-zinc-100 transition"
           >
             <span className="text-[#e11d23]">Instant Help</span>
-            <span className="text-zinc-600 font-normal">1800-XXX</span>
+            <span className="text-zinc-600 font-normal">Call Now</span>
           </a>
         </div>
 
