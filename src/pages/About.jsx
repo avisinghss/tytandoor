@@ -32,11 +32,11 @@ export default function About() {
             At Tytan Doors, we believe a door is more than just an entryway—it is the frontline of security, aesthetics, and architectural character for any structure.
           </p>
           <p className="text-slate-600 dark:text-zinc-400 text-sm sm:text-base leading-relaxed">
-            Established on <strong>August 1, 2026</strong>, Tytan Doors operates as a specialized manufacturing brand under <strong>Anil Interior Firm</strong>. By fusing deep expertise in interior craftsmanship with advanced manufacturing standards, we deliver doors designed to withstand time and climate.
+            Established on <strong>August 1, 2026</strong>, Tytan Doors operates as a specialized manufacturing brand under <strong>Anil Interio</strong>. By fusing deep expertise in interior craftsmanship with advanced manufacturing standards, we deliver doors designed to withstand time and climate.
           </p>
           <div className="p-4 bg-red-50/60 dark:bg-red-950/20 border-l-4 border-[#b31919] dark:border-red-500 rounded-r-lg">
             <p className="text-xs sm:text-sm text-slate-800 dark:text-zinc-300 font-medium">
-              Backed by Anil Interior Firm — bringing design-first thinking to high-grade industrial production.
+              Backed by Anil Interio — bringing design-first thinking to high-grade industrial production.
             </p>
           </div>
         </div>

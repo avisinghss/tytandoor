@@ -45,8 +45,8 @@ export default function Footer() {
 
               {/* Secondary Logo: Anil Interior (In White Badge) */}
               <a 
-                href="#anil-interior" 
-                title="Anil Interior Firm"
+                href="#anil-interio" 
+                title="Anil Interio"
                 className="inline-flex items-center justify-center bg-white px-2.5 py-1.5 rounded-lg shadow-xs hover:bg-zinc-100 transition-colors"
               >
                 <img
@@ -59,7 +59,7 @@ export default function Footer() {
                   }}
                 />
                 <span className="hidden text-xs font-bold text-amber-600 tracking-wide uppercase">
-                  Anil Interior
+                  Anil Interio
                 </span>
               </a>
             </div>
@@ -72,7 +72,7 @@ export default function Footer() {
             {/* Parent Company Badge */}
             <div className="pt-0.5">
               <span className="inline-block text-[11px] sm:text-xs text-zinc-400 bg-zinc-900/90 border border-zinc-800 px-2.5 py-1 rounded-md">
-                A Brand Unit of <strong className="text-zinc-200 font-semibold">Anil Interior Firm</strong>
+                A Brand Unit of <strong className="text-zinc-200 font-semibold">Anil Interio</strong>
               </span>
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function Footer() {
 
       {/* Bottom Copyright Bar */}
       <div className="border-t border-zinc-900 bg-zinc-950 py-5 text-center text-xs text-zinc-500 px-4 space-y-1">
-        <p>© 2026 Tytan Doors. Operating under Anil Interior. All Rights Reserved.</p>
+        <p>© 2026 Tytan Doors. Operating under Anil Interio. All Rights Reserved.</p>
         <p>
           Web Design &amp; Development |{" "}
           <a
