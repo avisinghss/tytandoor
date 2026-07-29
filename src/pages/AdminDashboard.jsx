@@ -3,7 +3,7 @@ import { supabase } from '../services/supabaseClient';
 import * as XLSX from 'xlsx';
 import { 
   Phone, Users, FolderKanban, LogOut, 
-  Menu, X, PackagePlus, Layers, ShoppingBag 
+  Menu, X, PackagePlus, Layers, ShoppingBag, Download
 } from 'lucide-react';
 
 import EnquiriesTab from '../components/admin/EnquiriesTab';
@@ -21,6 +21,10 @@ export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('products');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // PWA Install State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
 
   // Data States
   const [enquiries, setEnquiries] = useState([]);
@@ -48,14 +52,55 @@ export default function AdminDashboard({ onLogout }) {
     message: '',
   });
 
-  // Request Notification Permissions on Mount
+  // ---------------- 1. DYNAMIC MANIFEST INJECTION FOR ADMIN ROUTE ----------------
+  useEffect(() => {
+    let manifestLink = document.querySelector('link[rel="manifest"]');
+    if (!manifestLink) {
+      manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = '/manifest.json';
+      document.head.appendChild(manifestLink);
+    }
+
+    return () => {
+      if (manifestLink && manifestLink.parentNode) {
+        manifestLink.parentNode.removeChild(manifestLink);
+      }
+    };
+  }, []);
+
+  // ---------------- 2. PWA INSTALL PROMPT LISTENER ----------------
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setShowInstallBtn(false);
+    }
+    setDeferredPrompt(null);
+  };
+
+  // ---------------- NOTIFICATION PERMISSIONS ----------------
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
   }, []);
 
-  // Helper to trigger Browser Notifications
   const triggerNotification = (title, body) => {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(title, {
@@ -102,7 +147,6 @@ export default function AdminDashboard({ onLogout }) {
     else if (data) setCategories(data);
   }, []);
 
-  // Parallel Initial Load
   useEffect(() => {
     const fetchAllData = async () => {
       setIsLoading(true);
@@ -120,7 +164,7 @@ export default function AdminDashboard({ onLogout }) {
     fetchAllData();
   }, [fetchEnquiries, fetchCallRequests, fetchStaff, fetchProjects, fetchProducts, fetchCategories]);
 
-  // ---------------- REALTIME SUBSCRIPTION FOR LIVE AUTO-REFRESH ----------------
+  // ---------------- REALTIME SUBSCRIPTION ----------------
   useEffect(() => {
     const enquiriesChannel = supabase
       .channel('realtime_enquiries')
@@ -147,7 +191,7 @@ export default function AdminDashboard({ onLogout }) {
     };
   }, []);
 
-  // ---------------- FEATURED TOGGLE HANDLER ----------------
+  // ---------------- FEATURED TOGGLE ----------------
   const toggleFeaturedStatus = async (id, currentStatus) => {
     try {
       const { error } = await supabase
@@ -320,9 +364,23 @@ export default function AdminDashboard({ onLogout }) {
       {/* Mobile Top Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800 shrink-0 z-40">
         <h1 className="text-base font-black text-red-600 tracking-wider">TYTAN ADMIN</h1>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-zinc-400 focus:outline-none cursor-pointer">
-          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        
+        <div className="flex items-center gap-2">
+          {/* PWA Install Button (Displays when available on browser) */}
+          {showInstallBtn && (
+            <button 
+              onClick={handleInstallApp}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors shadow-md cursor-pointer"
+            >
+              <Download size={14} />
+              <span>Install App</span>
+            </button>
+          )}
+
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-zinc-400 focus:outline-none cursor-pointer">
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Dark Overlay Backdrop */}
@@ -371,7 +429,17 @@ export default function AdminDashboard({ onLogout }) {
           </nav>
         </div>
 
-        <div className="pt-4 border-t border-zinc-800">
+        <div className="pt-4 border-t border-zinc-800 space-y-2">
+          {showInstallBtn && (
+            <button
+              onClick={handleInstallApp}
+              className="w-full flex items-center justify-center gap-2 text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-red-500 py-2.5 px-3 rounded-xl transition cursor-pointer"
+            >
+              <Download size={16} />
+              <span>Install Tytan Admin App</span>
+            </button>
+          )}
+
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-red-500 hover:bg-zinc-800/50 py-2.5 px-3 rounded-xl transition cursor-pointer"
