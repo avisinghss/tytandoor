@@ -3,7 +3,7 @@ import { supabase } from '../services/supabaseClient';
 import * as XLSX from 'xlsx';
 import { 
   Phone, Users, FolderKanban, LogOut, 
-  Menu, X, PackagePlus, Layers, ShoppingBag, Download
+  Menu, X, PackagePlus, Layers, ShoppingBag, Download, Bell, BellRing
 } from 'lucide-react';
 
 import EnquiriesTab from '../components/admin/EnquiriesTab';
@@ -21,6 +21,9 @@ export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('products');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Notification Permission State
+  const [notiPermission, setNotiPermission] = useState('default');
 
   // PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -69,12 +72,20 @@ export default function AdminDashboard({ onLogout }) {
     };
   }, []);
 
-  // ---------------- 2. PWA INSTALL PROMPT LISTENER ----------------
+  // ---------------- 2. PWA INSTALL PROMPT LISTENER (PHONES/TABLETS ONLY) ----------------
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBtn(true);
+
+      // Restrict install option: check if mobile/tablet user agent OR screen width < 1024px
+      const isMobileOrTablet = 
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        window.innerWidth < 1024;
+
+      if (isMobileOrTablet) {
+        setDeferredPrompt(e);
+        setShowInstallBtn(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -94,20 +105,61 @@ export default function AdminDashboard({ onLogout }) {
     setDeferredPrompt(null);
   };
 
-  // ---------------- NOTIFICATION PERMISSIONS ----------------
+  // ---------------- 3. NOTIFICATION PERMISSION & HELPER WITH REDIRECT ----------------
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+    if ('Notification' in window) {
+      setNotiPermission(Notification.permission);
     }
   }, []);
 
-  const triggerNotification = (title, body) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body,
-        icon: '/pwa-192x192.png'
-      });
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      alert('This browser does not support desktop or mobile push notifications.');
+      return;
     }
+
+    const permission = await Notification.requestPermission();
+    setNotiPermission(permission);
+
+    if (permission === 'granted') {
+      triggerNotification('Notifications Enabled!', 'You will now receive instant alerts for new enquiries and calls.', 'enquiries');
+    } else {
+      alert('Notification permission was denied. Please enable it in your browser settings.');
+    }
+  };
+
+  const triggerNotification = async (title, body, targetTab = 'enquiries') => {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    // Mobile Service Worker notification logic
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          registration.showNotification(title, {
+            body,
+            icon: '/pwa-192x192.png',
+            badge: '/pwa-192x192.png',
+            vibrate: [200, 100, 200],
+            data: { targetTab }
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Service worker notification error:', err);
+      }
+    }
+
+    // Standard Desktop browser notification with click listener
+    const noti = new Notification(title, {
+      body,
+      icon: '/pwa-192x192.png'
+    });
+
+    noti.onclick = () => {
+      window.focus();
+      setActiveTab(targetTab);
+    };
   };
 
   // ---------------- FETCH DATA ----------------
@@ -173,7 +225,7 @@ export default function AdminDashboard({ onLogout }) {
         { event: 'INSERT', schema: 'public', table: 'enquiries' },
         (payload) => {
           setEnquiries((prev) => [payload.new, ...prev]);
-          triggerNotification('🚨 New Enquiry Received!', `From: ${payload.new.name || 'New Customer'}`);
+          triggerNotification('🚨 New Enquiry Received!', `From: ${payload.new.name || 'New Customer'}`, 'enquiries');
         }
       )
       .on(
@@ -181,7 +233,7 @@ export default function AdminDashboard({ onLogout }) {
         { event: 'INSERT', schema: 'public', table: 'call_requests' },
         (payload) => {
           setCallRequests((prev) => [payload.new, ...prev]);
-          triggerNotification('📞 New Call Request!', `Phone: ${payload.new.phone || 'New Request'}`);
+          triggerNotification('📞 New Call Request!', `Phone: ${payload.new.phone || 'New Request'}`, 'calls');
         }
       )
       .subscribe();
@@ -352,8 +404,8 @@ export default function AdminDashboard({ onLogout }) {
   const navTabs = [
     { id: 'products', label: 'Products', icon: PackagePlus },
     { id: 'categories', label: 'Categories', icon: Layers },
-    { id: 'enquiries', label: 'Enquiries', icon: ShoppingBag },
-    { id: 'calls', label: 'Call Requests', icon: Phone },
+    { id: 'enquiries', label: 'Enquiries', icon: ShoppingBag, count: enquiries.length },
+    { id: 'calls', label: 'Call Requests', icon: Phone, count: callRequests.length },
     { id: 'staff', label: 'Staff Directory', icon: Users },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
   ];
@@ -366,14 +418,28 @@ export default function AdminDashboard({ onLogout }) {
         <h1 className="text-base font-black text-red-600 tracking-wider">TYTAN ADMIN</h1>
         
         <div className="flex items-center gap-2">
-          {/* PWA Install Button (Displays when available on browser) */}
+          {/* Notification Alert Status Button */}
+          <button
+            onClick={requestNotificationPermission}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+              notiPermission === 'granted'
+                ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30'
+                : 'bg-amber-600 hover:bg-amber-700 text-white animate-pulse'
+            }`}
+            title="Enable/Test Notifications"
+          >
+            {notiPermission === 'granted' ? <Bell size={14} /> : <BellRing size={14} />}
+            <span>{notiPermission === 'granted' ? 'Alerts On' : 'Enable Alerts'}</span>
+          </button>
+
+          {/* PWA Install Button */}
           {showInstallBtn && (
             <button 
               onClick={handleInstallApp}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors shadow-md cursor-pointer"
             >
               <Download size={14} />
-              <span>Install App</span>
+              <span>Install</span>
             </button>
           )}
 
@@ -415,14 +481,23 @@ export default function AdminDashboard({ onLogout }) {
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                     isActive 
                       ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' 
                       : 'text-zinc-400 hover:bg-zinc-800/80 hover:text-white'
                   }`}
                 >
-                  <Icon size={18} className="shrink-0" />
-                  <span className="truncate">{tab.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon size={18} className="shrink-0" />
+                    <span className="truncate">{tab.label}</span>
+                  </div>
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className={`px-2 py-0.5 text-[10px] rounded-full font-extrabold ${
+                      isActive ? 'bg-white text-red-600' : 'bg-red-600/20 text-red-400 border border-red-500/30'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -430,6 +505,19 @@ export default function AdminDashboard({ onLogout }) {
         </div>
 
         <div className="pt-4 border-t border-zinc-800 space-y-2">
+          {/* Desktop/Tablet Notification Settings Switch */}
+          <button
+            onClick={requestNotificationPermission}
+            className={`w-full flex items-center justify-center gap-2 text-xs font-bold py-2.5 px-3 rounded-xl transition cursor-pointer ${
+              notiPermission === 'granted'
+                ? 'bg-zinc-800 text-emerald-400 hover:bg-zinc-700'
+                : 'bg-amber-600 hover:bg-amber-700 text-white'
+            }`}
+          >
+            {notiPermission === 'granted' ? <Bell size={16} /> : <BellRing size={16} />}
+            <span>{notiPermission === 'granted' ? 'Notifications Active' : 'Enable Notifications'}</span>
+          </button>
+
           {showInstallBtn && (
             <button
               onClick={handleInstallApp}
