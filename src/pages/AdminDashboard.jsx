@@ -141,23 +141,7 @@ export default function AdminDashboard({ onLogout }) {
     }
   };
 
-  const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
-      alert('This browser does not support push notifications.');
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    setNotiPermission(permission);
-
-    if (permission === 'granted') {
-      triggerNotification('Inquiries', 'Dear Sir, You got a new notification active status update.');
-    } else {
-      alert('Notifications are blocked by Chrome. Please tap the lock icon on your address bar to allow permissions.');
-    }
-  };
-
-  const triggerNotification = async (categoryName, bodyMessage, targetTab = 'enquiries') => {
+  const triggerNotification = useCallback(async (categoryName, bodyMessage, targetTab = 'enquiries') => {
     // 1. Play Tone
     playNotificationSound();
 
@@ -204,6 +188,22 @@ export default function AdminDashboard({ onLogout }) {
         window.focus();
         setActiveTab(targetTab);
       };
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      alert('This browser does not support push notifications.');
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    setNotiPermission(permission);
+
+    if (permission === 'granted') {
+      triggerNotification('Inquiries', 'Dear Sir, You got a new notification active status update.');
+    } else {
+      alert('Notifications are blocked by Chrome. Please tap the lock icon on your address bar to allow permissions.');
     }
   };
 
@@ -285,12 +285,13 @@ export default function AdminDashboard({ onLogout }) {
 
   // ---------------- REALTIME SUBSCRIPTION ----------------
   useEffect(() => {
-    const enquiriesChannel = supabase
-      .channel('realtime_enquiries')
+    const channel = supabase
+      .channel('admin-realtime-channel')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'enquiries' },
         (payload) => {
+          console.log('🔔 Realtime Enquiry:', payload.new);
           setEnquiries((prev) => [payload.new, ...prev]);
           triggerNotification('Enquiry', `You got a new enquiry from ${payload.new.name || 'a customer'}.`, 'enquiries');
         }
@@ -299,6 +300,7 @@ export default function AdminDashboard({ onLogout }) {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'contact_submissions' },
         (payload) => {
+          console.log('🔔 Realtime Contact Submission:', payload.new);
           setContactSubmissions((prev) => [payload.new, ...prev]);
           triggerNotification('Contact Submission', `You got a new contact form submission from ${payload.new.name || 'a user'}.`, 'enquiries');
         }
@@ -307,16 +309,20 @@ export default function AdminDashboard({ onLogout }) {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'call_requests' },
         (payload) => {
+          console.log('🔔 Realtime Call Request:', payload.new);
           setCallRequests((prev) => [payload.new, ...prev]);
           triggerNotification('Call Request', `You got a new call request for ${payload.new.phone || 'a phone number'}.`, 'calls');
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log('📡 Realtime Subscription Status on Vercel:', status);
+        if (err) console.error('Realtime Subscription Error:', err);
+      });
 
     return () => {
-      supabase.removeChannel(enquiriesChannel);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [triggerNotification]);
 
   // ---------------- COMBINE INQUIRIES & CONTACT SUBMISSIONS ----------------
   const combinedInquiries = [
