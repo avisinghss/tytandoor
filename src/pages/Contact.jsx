@@ -1,74 +1,345 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { supabase } from '../services/supabaseClient';
+import { 
+  Phone, Mail, Clock, Send, Building2, Factory, 
+  CheckCircle2, MessageSquare, ChevronDown, FileText, 
+  ShieldCheck, ArrowRight, Loader2 
+} from 'lucide-react';
 
 export default function Contact() {
-  return (
-    <div className="relative min-h-screen bg-[#FAF9F5] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center overflow-hidden transition-colors duration-300">
-      
-      {/* Background Nature Doodle SVG Pattern */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.07] dark:opacity-[0.05] flex justify-between items-center z-0">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none">
-          <pattern id="nature-doodle" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
-            {/* Tree doodle */}
-            <path d="M30 50 C30 35, 15 35, 20 20 C25 10, 45 10, 45 20 C50 35, 35 35, 35 50 Z M32 50 L32 60" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            {/* Sun doodle */}
-            <circle cx="90" cy="25" r="8" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" />
-            {/* Leaf doodle */}
-            <path d="M80 80 Q95 70 95 85 Q80 95 80 80 Z M80 80 L95 85" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            {/* Cloud doodle */}
-            <path d="M15 90 Q15 80 25 80 Q30 70 40 75 Q50 70 55 80 Q60 85 50 90 Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#nature-doodle)" />
-        </svg>
-      </div>
+  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [openFaq, setOpenFaq] = useState(null);
 
-      <div className="relative z-10 max-w-4xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 p-6 sm:p-10 rounded-3xl shadow-xl">
-        
-        {/* Info Column */}
-        <div className="md:col-span-5 flex flex-col justify-between space-y-6">
-          <div>
-            <span className="text-[#b31919] dark:text-red-500 font-bold text-xs uppercase tracking-wider block mb-1">Get In Touch</span>
-            <h1 className="text-3xl font-extrabold tracking-tight mb-4">Let's Connect</h1>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-6">
-              Have a custom door order or want to consult with our interior design architects? Drop us a message!
-            </p>
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    inquiryType: 'Homeowner',
+    message: '',
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage('');
+
+    try {
+      const { error } = await supabase.from('contact_submissions').insert([
+        {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          inquiry_type: formData.inquiryType,
+          message: formData.message,
+          status: 'NEW',
+        },
+      ]);
+
+      if (error) throw error;
+
+      setSubmitted(true);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        inquiryType: 'Homeowner',
+        message: '',
+      });
+    } catch (err) {
+      console.error('Error submitting contact form:', err);
+      setErrorMessage('Failed to send message. Please try again or call us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const faqs = [
+    {
+      q: "What warranty coverage do Tytan Doors come with?",
+      a: "Tytan Doors offers robust long-term protection: doors in the Membrane category come with a 10-Year Limited Warranty, while all other door categories are backed by our full 20-Year Warranty."
+    },
+    {
+      q: "Do you offer custom door dimensions for architectural projects?",
+      a: "Yes! As a manufacturing brand under Anil Interio, we specialize in custom height, width, and thickness engineered to your exact architectural specifications."
+    },
+    {
+      q: "Can I request physical material samples or a product catalog?",
+      a: "Optionally select 'Architect / Builder' as your role in the contact form or call our team directly to request an architectural sample kit."
+    },
+    {
+      q: "What is the typical lead time for bulk orders?",
+      a: "Standard door models ship within 5-7 business days. Custom bulk orders generally take 2-3 weeks."
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-100 font-sans transition-colors duration-300">
+      
+      {/* Header */}
+      <section className="relative bg-slate-900 dark:bg-zinc-900 text-white py-14 sm:py-20 px-6 text-center overflow-hidden">
+        <div className="relative max-w-3xl mx-auto space-y-3">
+          <span className="inline-block px-3.5 py-1 bg-red-600/20 text-red-400 rounded-full text-xs font-semibold uppercase tracking-wider">
+            Tytan Doors • Powered by Anil Interio
+          </span>
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
+            Let's Build Your Project Together
+          </h1>
+          <p className="text-sm sm:text-lg text-slate-300 font-light max-w-xl mx-auto">
+            Have a question, need custom sizing, or looking to claim your 20-Year Warranty? Contact our team today.
+          </p>
+        </div>
+      </section>
+
+      {/* Main Grid */}
+      <section className="max-w-7xl mx-auto py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          
+          {/* Form */}
+          <div className="lg:col-span-7 bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-2xl shadow-xs border border-slate-200 dark:border-zinc-800">
+            <div className="mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                Send Us a Message
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+                Fill out the form below and an engineer or technical expert will respond within 24 hours.
+              </p>
+            </div>
+
+            {errorMessage && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs rounded-lg">
+                {errorMessage}
+              </div>
+            )}
+
+            {submitted ? (
+              <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-6 text-center space-y-3 my-8">
+                <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
+                <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-200">
+                  Message Received!
+                </h3>
+                <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                  Thank you for reaching out. Our team is reviewing your details and will get back to you shortly.
+                </p>
+                <button
+                  onClick={() => setSubmitted(false)}
+                  className="mt-2 text-xs font-semibold text-emerald-800 dark:text-emerald-400 underline cursor-pointer"
+                >
+                  Send another message
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="+91 98765 43210"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="name@domain.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
+                      Inquiry Topic
+                    </label>
+                    <select
+                      name="inquiryType"
+                      value={formData.inquiryType}
+                      onChange={handleChange}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
+                    >
+                      <option value="Homeowner">Homeowner / Retail Purchase</option>
+                      <option value="Architect/Builder">Architect / Interior Designer</option>
+                      <option value="Commercial">Commercial Developer / Contractor</option>
+                      <option value="Dealer">Distributor / Dealer Inquiry</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Project Details or Warranty Serial No. *
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    placeholder="Tell us about door quantity, required dimensions, or warranty details..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-all resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto px-8 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Submit Inquiry
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
           </div>
 
-          <div className="space-y-4 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
-            <div className="flex items-center gap-3">
-              <span className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[#b31919]">📍</span>
-              <span>123 Architectural Way, Design District</span>
+          {/* Info Side Bar */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 dark:border-amber-500/20 p-5 rounded-2xl relative overflow-hidden">
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl shrink-0">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded">
+                    Guaranteed Protection
+                  </span>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Need to Claim Your Warranty?
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">
+                    Up to <strong>20-Year Warranty</strong> coverage. Have your invoice or serial code ready for instant help.
+                  </p>
+                  <div className="pt-2">
+                    <button
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, inquiryType: 'Warranty Claim' }));
+                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      Redirect to Claim Warranty
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[#b31919]">📞</span>
-              <span>+1 (800) 555-DOOR</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[#b31919]">✉️</span>
-              <span>support@doorcraft.com</span>
+
+            <div className="bg-slate-900 text-white p-6 rounded-2xl space-y-4 shadow-xs">
+              <h3 className="text-lg font-bold border-b border-slate-800 pb-3 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-red-500" />
+                Direct Communication
+              </h3>
+              <div className="space-y-3 text-sm text-slate-300">
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-red-500 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-400">Call / WhatsApp</p>
+                    <a href="tel:+919876543210" className="font-medium hover:text-white transition-colors">+91 98765 43210</a>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-red-500 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-400">Email Us</p>
+                    <a href="mailto:info@tytandoor.com" className="font-medium hover:text-white transition-colors">info@tytandoor.com</a>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-red-500 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-400">Business Hours</p>
+                    <p className="font-medium">Mon - Sat: 9:00 AM - 7:00 PM</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Contact Form */}
-        <form onSubmit={(e) => e.preventDefault()} className="md:col-span-7 space-y-4">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-zinc-600 dark:text-zinc-400">Full Name</label>
-            <input type="text" placeholder="John Doe" className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#b31919] transition" />
+      {/* FAQ Section */}
+      <section className="bg-slate-100 dark:bg-zinc-900/50 py-12 px-4 sm:px-6 border-t border-slate-200 dark:border-zinc-800">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="text-center space-y-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+              Quick answers to common inquiries regarding warranties, sizing, and orders.
+            </p>
           </div>
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-zinc-600 dark:text-zinc-400">Email Address</label>
-            <input type="email" placeholder="john@example.com" className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#b31919] transition" />
+          <div className="space-y-3">
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => setOpenFaq(isOpen ? null : idx)}
+                  className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 cursor-pointer transition-all"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white">
+                      {faq.q}
+                    </h3>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-red-500' : ''}`} />
+                  </div>
+                  {isOpen && (
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 mt-2.5 pt-2 border-t border-slate-100 dark:border-zinc-800 leading-relaxed">
+                      {faq.a}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-zinc-600 dark:text-zinc-400">Message</label>
-            <textarea rows="4" placeholder="Tell us about your project or inquiry..." className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#b31919] transition"></textarea>
-          </div>
-          <button type="submit" className="w-full bg-[#b31919] hover:bg-red-700 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-md active:scale-98 cursor-pointer">
-            Send Message
-          </button>
-        </form>
-
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

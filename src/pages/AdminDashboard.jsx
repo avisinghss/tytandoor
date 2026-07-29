@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 import * as XLSX from 'xlsx';
-import { Phone, Users, FolderKanban, MessageSquare, LogOut, Menu, X, PackagePlus, Layers } from 'lucide-react';
+import { 
+  Phone, Users, FolderKanban, LogOut, 
+  Menu, X, PackagePlus, Layers, ShoppingBag 
+} from 'lucide-react';
 
 import EnquiriesTab from '../components/admin/EnquiriesTab';
 import CallsTab from '../components/admin/CallsTab';
@@ -17,6 +20,7 @@ import DeleteConfirmModal from '../components/admin/DeleteConfirmModal';
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('products');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Data States
   const [enquiries, setEnquiries] = useState([]);
@@ -44,45 +48,60 @@ export default function AdminDashboard({ onLogout }) {
     message: '',
   });
 
-  useEffect(() => {
-    fetchEnquiries();
-    fetchCallRequests();
-    fetchStaff();
-    fetchProjects();
-    fetchProducts();
-    fetchCategories();
+  // ---------------- FETCH DATA ----------------
+  const fetchEnquiries = useCallback(async () => {
+    const { data, error } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching enquiries:', error.message);
+    else if (data) setEnquiries(data);
   }, []);
 
-  // ---------------- FETCH DATA ----------------
-  const fetchEnquiries = async () => {
-    const { data } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
-    if (data) setEnquiries(data);
-  };
+  const fetchCallRequests = useCallback(async () => {
+    const { data, error } = await supabase.from('call_requests').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching call requests:', error.message);
+    else if (data) setCallRequests(data);
+  }, []);
 
-  const fetchCallRequests = async () => {
-    const { data } = await supabase.from('call_requests').select('*').order('created_at', { ascending: false });
-    if (data) setCallRequests(data);
-  };
+  const fetchStaff = useCallback(async () => {
+    const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching staff:', error.message);
+    else if (data) setStaffList(data);
+  }, []);
 
-  const fetchStaff = async () => {
-    const { data } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
-    if (data) setStaffList(data);
-  };
+  const fetchProjects = useCallback(async () => {
+    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching projects:', error.message);
+    else if (data) setProjects(data);
+  }, []);
 
-  const fetchProjects = async () => {
-    const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-    if (data) setProjects(data);
-  };
+  const fetchProducts = useCallback(async () => {
+    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching products:', error.message);
+    else if (data) setProducts(data);
+  }, []);
 
-  const fetchProducts = async () => {
-    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-    if (data) setProducts(data);
-  };
+  const fetchCategories = useCallback(async () => {
+    const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching categories:', error.message);
+    else if (data) setCategories(data);
+  }, []);
 
-  const fetchCategories = async () => {
-    const { data } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
-    if (data) setCategories(data);
-  };
+  // Parallel Initial Load
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setIsLoading(true);
+      await Promise.all([
+        fetchEnquiries(),
+        fetchCallRequests(),
+        fetchStaff(),
+        fetchProjects(),
+        fetchProducts(),
+        fetchCategories(),
+      ]);
+      setIsLoading(false);
+    };
+
+    fetchAllData();
+  }, [fetchEnquiries, fetchCallRequests, fetchStaff, fetchProjects, fetchProducts, fetchCategories]);
 
   // ---------------- FEATURED TOGGLE HANDLER ----------------
   const toggleFeaturedStatus = async (id, currentStatus) => {
@@ -110,35 +129,58 @@ export default function AdminDashboard({ onLogout }) {
   // ---------------- FILTER & EXPORT ----------------
   const filterByTime = (items) => {
     if (timeFilter === 'all') return items;
+    
     const now = new Date();
     return items.filter((item) => {
       const itemDate = new Date(item.created_at);
-      const diffDays = Math.ceil(Math.abs(now - itemDate) / (1000 * 60 * 60 * 24));
-      if (timeFilter === 'today') return diffDays <= 1;
-      if (timeFilter === 'week') return diffDays <= 7;
-      if (timeFilter === 'month') return diffDays <= 30;
+      
+      if (timeFilter === 'today') {
+        return itemDate.toDateString() === now.toDateString();
+      }
+      
+      const diffInTime = now.getTime() - itemDate.getTime();
+      const diffInDays = diffInTime / (1000 * 3600 * 24);
+
+      if (timeFilter === 'week') return diffInDays <= 7;
+      if (timeFilter === 'month') return diffInDays <= 30;
       return true;
     });
   };
 
-  const exportToExcel = () => {
-    const filtered = filterByTime(enquiries);
+  const exportToExcel = (dataToExport, fileName) => {
+    const filtered = filterByTime(dataToExport);
     const worksheet = XLSX.utils.json_to_sheet(filtered);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Enquiries");
-    XLSX.writeFile(workbook, `Tytan_Door_Enquiries_${timeFilter}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+    XLSX.writeFile(workbook, `${fileName}_${timeFilter}.xlsx`);
   };
 
   // ---------------- HANDLERS ----------------
   const toggleSelectCall = (id) => {
-    setSelectedCallIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+    setSelectedCallIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
 
   const deleteSelectedCalls = async () => {
     if (selectedCallIds.length === 0) return;
-    await supabase.from('call_requests').delete().in('id', selectedCallIds);
+    const { error } = await supabase.from('call_requests').delete().in('id', selectedCallIds);
+    if (error) {
+      console.error('Error deleting call requests:', error.message);
+      return;
+    }
     setSelectedCallIds([]);
     fetchCallRequests();
+  };
+
+  const handleDeleteEnquiry = (id, name) => {
+    setDeleteModal({
+      isOpen: true,
+      type: 'enquiry',
+      id,
+      title: 'Delete Enquiry',
+      message: `Are you sure you want to delete the enquiry from ${name || 'this user'}?`,
+    });
   };
 
   const handleDeleteStaff = (id, name) => {
@@ -183,27 +225,50 @@ export default function AdminDashboard({ onLogout }) {
 
   const handleConfirmDelete = async () => {
     const { type, id } = deleteModal;
-    if (type === 'staff') {
-      await supabase.from('staff').delete().eq('id', id);
-      fetchStaff();
+    let error = null;
+
+    if (type === 'enquiry') {
+      ({ error } = await supabase.from('enquiries').delete().eq('id', id));
+      if (!error) fetchEnquiries();
+    } else if (type === 'staff') {
+      ({ error } = await supabase.from('staff').delete().eq('id', id));
+      if (!error) fetchStaff();
     } else if (type === 'project') {
-      await supabase.from('projects').delete().eq('id', id);
-      fetchProjects();
+      ({ error } = await supabase.from('projects').delete().eq('id', id));
+      if (!error) fetchProjects();
     } else if (type === 'product') {
-      await supabase.from('products').delete().eq('id', id);
-      fetchProducts();
+      ({ error } = await supabase.from('products').delete().eq('id', id));
+      if (!error) fetchProducts();
     } else if (type === 'category') {
-      await supabase.from('categories').delete().eq('id', id);
-      fetchCategories();
+      ({ error } = await supabase.from('categories').delete().eq('id', id));
+      if (!error) fetchCategories();
     }
+
+    if (error) {
+      console.error(`Error deleting ${type}:`, error.message);
+    }
+
     setDeleteModal({ isOpen: false, type: null, id: null, title: '', message: '' });
   };
 
   const toggleProjectStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'RUNNING' ? 'COMPLETED' : 'RUNNING';
-    await supabase.from('projects').update({ status: newStatus }).eq('id', id);
+    const { error } = await supabase.from('projects').update({ status: newStatus }).eq('id', id);
+    if (error) {
+      console.error('Error toggling project status:', error.message);
+      return;
+    }
     fetchProjects();
   };
+
+  const navTabs = [
+    { id: 'products', label: 'Products Collection', icon: PackagePlus },
+    { id: 'categories', label: 'Categories', icon: Layers },
+    { id: 'enquiries', label: 'Enquiries', icon: ShoppingBag },
+    { id: 'calls', label: 'Call Requests', icon: Phone },
+    { id: 'staff', label: 'Staff Directory', icon: Users },
+    { id: 'projects', label: 'Projects', icon: FolderKanban },
+  ];
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col md:flex-row font-sans">
@@ -211,7 +276,7 @@ export default function AdminDashboard({ onLogout }) {
       {/* Mobile Top Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800 sticky top-0 z-40">
         <h1 className="text-lg font-black text-red-600 tracking-wider">TYTAN ADMIN</h1>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-zinc-400">
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-zinc-400 focus:outline-hidden">
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -238,20 +303,16 @@ export default function AdminDashboard({ onLogout }) {
           </div>
 
           <nav className="space-y-2">
-            {[
-              { id: 'products', label: 'Products Collection', icon: PackagePlus },
-              { id: 'categories', label: 'Categories', icon: Layers },
-              { id: 'enquiries', label: 'Enquiries', icon: MessageSquare },
-              { id: 'calls', label: 'Call Requests', icon: Phone },
-              { id: 'staff', label: 'Staff Directory', icon: Users },
-              { id: 'projects', label: 'Projects', icon: FolderKanban },
-            ].map((tab) => {
+            {navTabs.map((tab) => {
               const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer ${activeTab === tab.id ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-400 hover:bg-zinc-800/60'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer ${
+                    isActive ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-400 hover:bg-zinc-800/60'
+                  }`}
                 >
                   <Icon size={18} />
                   <span>{tab.label}</span>
@@ -272,81 +333,89 @@ export default function AdminDashboard({ onLogout }) {
 
       {/* Dynamic Content Area */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-        {activeTab === 'products' && (
-          <ProductsTab
-            products={products}
-            onOpenModal={() => setIsAddProductOpen(true)}
-            onDeleteProduct={handleDeleteProduct}
-            onToggleFeatured={toggleFeaturedStatus}
-            onProductUpdated={fetchProducts} /* <-- Added prop to reload products on Edit */
-          />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64 text-zinc-500">
+            <p className="animate-pulse font-medium text-sm">Loading Dashboard Data...</p>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'products' && (
+              <ProductsTab
+                products={products}
+                onOpenModal={() => setIsAddProductOpen(true)}
+                onDeleteProduct={handleDeleteProduct}
+                onToggleFeatured={toggleFeaturedStatus}
+                onProductUpdated={fetchProducts}
+              />
+            )}
+
+            {activeTab === 'categories' && (
+              <CategoriesTab
+                categories={categories}
+                onCategoryAdded={fetchCategories}
+                onDeleteCategory={handleDeleteCategory}
+              />
+            )}
+
+            {activeTab === 'enquiries' && (
+              <EnquiriesTab
+                title="Enquiries"
+                timeFilter={timeFilter}
+                setTimeFilter={setTimeFilter}
+                filteredEnquiries={filterByTime(enquiries)}
+                onExport={() => exportToExcel(enquiries, 'Enquiries')}
+                onDeleteEnquiry={handleDeleteEnquiry}
+              />
+            )}
+
+            {activeTab === 'calls' && (
+              <CallsTab
+                callRequests={callRequests}
+                selectedCallIds={selectedCallIds}
+                onToggleSelect={toggleSelectCall}
+                onDeleteSelected={deleteSelectedCalls}
+                onCallsUpdated={fetchCallRequests}
+              />
+            )}
+
+            {activeTab === 'staff' && (
+              <StaffTab
+                staffList={staffList}
+                onOpenModal={() => setIsAddStaffOpen(true)}
+                onDeleteStaff={handleDeleteStaff}
+              />
+            )}
+
+            {activeTab === 'projects' && (
+              <ProjectsTab
+                projects={projects}
+                onOpenModal={() => setIsAddProjectOpen(true)}
+                onToggleStatus={toggleProjectStatus}
+                onDeleteProject={handleDeleteProject}
+              />
+            )}
+          </>
         )}
 
-        {activeTab === 'categories' && (
-          <CategoriesTab
-            categories={categories}
-            onCategoryAdded={fetchCategories}
-            onDeleteCategory={handleDeleteCategory}
-          />
-        )}
-
-        {activeTab === 'enquiries' && (
-          <EnquiriesTab
-            timeFilter={timeFilter}
-            setTimeFilter={setTimeFilter}
-            filteredEnquiries={filterByTime(enquiries)}
-            onExport={exportToExcel}
-          />
-        )}
-
-        {activeTab === 'calls' && (
-          <CallsTab
-            callRequests={callRequests}
-            selectedCallIds={selectedCallIds}
-            onToggleSelect={toggleSelectCall}
-            onDeleteSelected={deleteSelectedCalls}
-          />
-        )}
-
-        {activeTab === 'staff' && (
-          <StaffTab
-            staffList={staffList}
-            onOpenModal={() => setIsAddStaffOpen(true)}
-            onDeleteStaff={handleDeleteStaff}
-          />
-        )}
-
-        {activeTab === 'projects' && (
-          <ProjectsTab
-            projects={projects}
-            onOpenModal={() => setIsAddProjectOpen(true)}
-            onToggleStatus={toggleProjectStatus}
-            onDeleteProject={handleDeleteProject}
-          />
-        )}
-
-        {/* Global Add Product Modal Popup */}
+        {/* Modals */}
         <AddProductModal
           isOpen={isAddProductOpen}
           onClose={() => setIsAddProductOpen(false)}
           onProductAdded={fetchProducts}
         />
 
-        {/* Global Add Staff Modal Popup */}
         <AddStaffModal
           isOpen={isAddStaffOpen}
           onClose={() => setIsAddStaffOpen(false)}
           onStaffAdded={fetchStaff}
         />
 
-        {/* Global Add Project Modal Popup */}
         <AddProjectModal
           isOpen={isAddProjectOpen}
           onClose={() => setIsAddProjectOpen(false)}
           onProjectAdded={fetchProjects}
         />
 
-        {/* Global Confirmation Delete Popup */}
         <DeleteConfirmModal
           modalData={deleteModal}
           onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
