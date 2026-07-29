@@ -58,6 +58,49 @@ export default function AdminDashboard({ onLogout }) {
     message: '',
   });
 
+  // ---------------- FETCH DATA ----------------
+  const fetchEnquiries = useCallback(async () => {
+    const { data, error } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching enquiries:', error.message);
+    else if (data) setEnquiries(data);
+  }, []);
+
+  const fetchContactSubmissions = useCallback(async () => {
+    const { data, error } = await supabase.from('contact_submissions').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching contact submissions:', error.message);
+    else if (data) setContactSubmissions(data);
+  }, []);
+
+  const fetchCallRequests = useCallback(async () => {
+    const { data, error } = await supabase.from('call_requests').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching call requests:', error.message);
+    else if (data) setCallRequests(data);
+  }, []);
+
+  const fetchStaff = useCallback(async () => {
+    const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching staff:', error.message);
+    else if (data) setStaffList(data);
+  }, []);
+
+  const fetchProjects = useCallback(async () => {
+    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching projects:', error.message);
+    else if (data) setProjects(data);
+  }, []);
+
+  const fetchProducts = useCallback(async () => {
+    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching products:', error.message);
+    else if (data) setProducts(data);
+  }, []);
+
+  const fetchCategories = useCallback(async () => {
+    const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching categories:', error.message);
+    else if (data) setCategories(data);
+  }, []);
+
   // ---------------- 1. DYNAMIC MANIFEST INJECTION ----------------
   useEffect(() => {
     let manifestLink = document.querySelector('link[rel="manifest"]');
@@ -123,7 +166,36 @@ export default function AdminDashboard({ onLogout }) {
     setDeferredPrompt(null);
   };
 
-  // ---------------- 4. NOTIFICATION PERMISSION & SOUND TRIGGER ----------------
+  // ---------------- 4. MOBILE PWA RESUME & AUTO-SYNC ----------------
+  // Mobile OS kills background WebSocket sockets when PWA is backgrounded/locked.
+  // This listener forces an immediate re-fetch whenever the user re-opens or unlocks the PWA.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('📱 PWA resumed on mobile/tablet - fetching fresh data...');
+        fetchEnquiries();
+        fetchContactSubmissions();
+        fetchCallRequests();
+      }
+    };
+
+    const handleOnline = () => {
+      console.log('🌐 Network restored - syncing PWA...');
+      fetchEnquiries();
+      fetchContactSubmissions();
+      fetchCallRequests();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [fetchEnquiries, fetchContactSubmissions, fetchCallRequests]);
+
+  // ---------------- 5. NOTIFICATION PERMISSION & SOUND TRIGGER ----------------
   useEffect(() => {
     if ('Notification' in window) {
       setNotiPermission(Notification.permission);
@@ -134,7 +206,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
       audio.play().catch(() => {
-        // Autoplay restrictions handle fallback
+        // Autoplay restrictions fallback
       });
     } catch (err) {
       console.error('Audio playback failed', err);
@@ -159,7 +231,7 @@ export default function AdminDashboard({ onLogout }) {
     };
     setNotifications((prev) => [newNotiObj, ...prev]);
 
-    // 3. Show System / Mobile Phone Push Notification
+    // 3. Show Mobile Phone OS System Notification
     if (('Notification' in window) && Notification.permission === 'granted') {
       if ('serviceWorker' in navigator) {
         try {
@@ -222,49 +294,7 @@ export default function AdminDashboard({ onLogout }) {
     setShowNotiDropdown(false);
   };
 
-  // ---------------- FETCH DATA ----------------
-  const fetchEnquiries = useCallback(async () => {
-    const { data, error } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
-    if (error) console.error('Error fetching enquiries:', error.message);
-    else if (data) setEnquiries(data);
-  }, []);
-
-  const fetchContactSubmissions = useCallback(async () => {
-    const { data, error } = await supabase.from('contact_submissions').select('*').order('created_at', { ascending: false });
-    if (error) console.error('Error fetching contact submissions:', error.message);
-    else if (data) setContactSubmissions(data);
-  }, []);
-
-  const fetchCallRequests = useCallback(async () => {
-    const { data, error } = await supabase.from('call_requests').select('*').order('created_at', { ascending: false });
-    if (error) console.error('Error fetching call requests:', error.message);
-    else if (data) setCallRequests(data);
-  }, []);
-
-  const fetchStaff = useCallback(async () => {
-    const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
-    if (error) console.error('Error fetching staff:', error.message);
-    else if (data) setStaffList(data);
-  }, []);
-
-  const fetchProjects = useCallback(async () => {
-    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-    if (error) console.error('Error fetching projects:', error.message);
-    else if (data) setProjects(data);
-  }, []);
-
-  const fetchProducts = useCallback(async () => {
-    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-    if (error) console.error('Error fetching products:', error.message);
-    else if (data) setProducts(data);
-  }, []);
-
-  const fetchCategories = useCallback(async () => {
-    const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
-    if (error) console.error('Error fetching categories:', error.message);
-    else if (data) setCategories(data);
-  }, []);
-
+  // ---------------- INITIAL ALL-DATA FETCH ----------------
   useEffect(() => {
     const fetchAllData = async () => {
       setIsLoading(true);
@@ -315,7 +345,7 @@ export default function AdminDashboard({ onLogout }) {
         }
       )
       .subscribe((status, err) => {
-        console.log('📡 Realtime Subscription Status on Vercel:', status);
+        console.log('📡 Realtime Subscription Status:', status);
         if (err) console.error('Realtime Subscription Error:', err);
       });
 
@@ -612,7 +642,6 @@ export default function AdminDashboard({ onLogout }) {
         </div>
 
         <div className="pt-4 border-t border-zinc-800 space-y-2">
-          {/* Show "Enable Notifications" Button ONLY IF permission is NOT granted */}
           {notiPermission !== 'granted' && (
             <button
               onClick={requestNotificationPermission}
