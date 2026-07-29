@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, CheckCircle, AlertCircle, ChevronDown, Check } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { supabase } from '../../services/supabaseClient';
 
@@ -9,9 +9,101 @@ const INITIAL_STATE = {
   email: '',
   state: 'Uttar Pradesh',
   city: '',
-  inquiryType: 'Homeowner',
+  inquiryType: 'Homeowner / Retail Purchase *',
   message: '',
 };
+
+const CITY_OPTIONS = [
+  'Ballia',
+  'Gorakhpur',
+  'Mau',
+  'Deoria',
+  'Azamgarh',
+  'Other',
+];
+
+const INQUIRY_TYPE_OPTIONS = [
+  'Homeowner / Retail Purchase *',
+  'Architect / Interior Designer',
+  'Commercial Developer / Contractor',
+  'Distributor / Dealer Inquiry',
+];
+
+// Reusable Custom Select Component to prevent Mobile Native Radio Popup
+function CustomSelect({
+  options = [],
+  value,
+  onChange,
+  placeholder,
+  disabled = false,
+  required = false,
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        className={`w-full flex items-center justify-between text-left text-xs sm:text-sm px-2.5 py-2 border rounded-lg transition-all ${
+          disabled
+            ? 'bg-zinc-100 text-zinc-500 border-zinc-300 cursor-not-allowed'
+            : 'bg-white text-zinc-900 border-zinc-300 focus:outline-none focus:border-[#e11d23] focus:ring-1 focus:ring-[#e11d23] cursor-pointer'
+        } ${isOpen ? 'border-[#e11d23] ring-1 ring-[#e11d23]' : ''}`}
+      >
+        <span className={value ? 'text-zinc-900' : 'text-zinc-500'}>
+          {value || placeholder}
+        </span>
+        <ChevronDown
+          size={14}
+          className={`text-zinc-400 transition-transform duration-200 shrink-0 ${
+            isOpen ? 'rotate-180 text-[#e11d23]' : ''
+          }`}
+        />
+      </button>
+
+      {/* Dropdown Menu List */}
+      {isOpen && (
+        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-zinc-200 rounded-lg shadow-xl max-h-48 overflow-y-auto py-1 text-xs sm:text-sm animate-in fade-in zoom-in-95 duration-150">
+          {options.map((option, idx) => {
+            const isSelected = option === value;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  onChange(option);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-red-50 hover:text-[#e11d23] transition-colors ${
+                  isSelected
+                    ? 'bg-red-50 text-[#e11d23] font-bold'
+                    : 'text-zinc-800'
+                }`}
+              >
+                <span className="truncate">{option}</span>
+                {isSelected && <Check size={14} className="text-[#e11d23] shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EnquiryModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState(INITIAL_STATE);
@@ -43,8 +135,19 @@ export default function EnquiryModal({ isOpen, onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCustomSelectChange = (field, value) => {
+    if (errorMessage) setErrorMessage('');
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.city) {
+      setErrorMessage('Please select a city.');
+      return;
+    }
+
     setLoading(true);
     setErrorMessage('');
 
@@ -64,12 +167,11 @@ export default function EnquiryModal({ isOpen, onClose }) {
       if (error) throw error;
 
       setIsSuccess(true);
-      
+
       // Automatically reset & close modal after 2.5 seconds
       setTimeout(() => {
         handleClose();
       }, 2500);
-
     } catch (err) {
       setErrorMessage(err.message || 'Failed to submit enquiry. Please try again.');
     } finally {
@@ -112,7 +214,7 @@ export default function EnquiryModal({ isOpen, onClose }) {
             </p>
             <button
               onClick={handleClose}
-              className="mt-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold px-6 py-2 rounded-xl transition"
+              className="mt-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold px-6 py-2 rounded-xl transition cursor-pointer"
             >
               Done
             </button>
@@ -178,51 +280,32 @@ export default function EnquiryModal({ isOpen, onClose }) {
                 />
               </div>
 
-              {/* Grid Row 2: State & City */}
+              {/* Grid Row 2: State & City Custom Select */}
               <div className="grid grid-cols-2 gap-2">
-                <select
-                  name="state"
+                <CustomSelect
+                  options={['Uttar Pradesh']}
                   value={formData.state}
-                  disabled
-                  aria-label="State"
-                  className="w-full bg-zinc-100 text-zinc-800 text-xs sm:text-sm border border-zinc-300 rounded-lg px-2 py-2 focus:outline-none cursor-not-allowed appearance-none"
-                >
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
-                </select>
+                  disabled={true}
+                  placeholder="Uttar Pradesh"
+                />
 
-                <select
-                  name="city"
-                  required
-                  aria-label="Select City"
+                <CustomSelect
+                  options={CITY_OPTIONS}
                   value={formData.city}
-                  onChange={handleChange}
-                  className="w-full bg-white text-zinc-800 text-xs sm:text-sm border border-zinc-300 rounded-lg px-2 py-2 focus:outline-none focus:border-[#e11d23] focus:ring-1 focus:ring-[#e11d23] transition"
-                >
-                  <option value="">Select City *</option>
-                  <option value="Ballia">Ballia</option>
-                  <option value="Gorakhpur">Gorakhpur</option>
-                  <option value="Mau">Mau</option>
-                  <option value="Deoria">Deoria</option>
-                  <option value="Azamgarh">Azamgarh</option>
-                  <option value="Other">Other</option>
-                </select>
+                  placeholder="Select City *"
+                  required={true}
+                  onChange={(val) => handleCustomSelectChange('city', val)}
+                />
               </div>
 
-              {/* Inquiry Type */}
+              {/* Inquiry Type Custom Select */}
               <div>
-                <select
-                  name="inquiryType"
-                  required
-                  aria-label="Inquiry Type"
+                <CustomSelect
+                  options={INQUIRY_TYPE_OPTIONS}
                   value={formData.inquiryType}
-                  onChange={handleChange}
-                  className="w-full bg-white text-zinc-900 text-xs sm:text-sm border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#e11d23] focus:ring-1 focus:ring-[#e11d23] transition"
-                >
-                  <option value="Homeowner">Homeowner / Retail Purchase *</option>
-                  <option value="Architect/Builder">Architect / Interior Designer</option>
-                  <option value="Commercial">Commercial Developer / Contractor</option>
-                  <option value="Dealer">Distributor / Dealer Inquiry</option>
-                </select>
+                  placeholder="Select Inquiry Type *"
+                  onChange={(val) => handleCustomSelectChange('inquiryType', val)}
+                />
               </div>
 
               {/* Message */}

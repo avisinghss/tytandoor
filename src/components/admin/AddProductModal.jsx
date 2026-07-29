@@ -1,6 +1,83 @@
-import React, { useState, useEffect } from 'react';
-import { X, Loader2, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Loader2, Plus, Trash2, ChevronDown, Check } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
+
+// Reusable Custom Select Component
+function CustomSelect({
+  options = [],
+  value,
+  onChange,
+  placeholder = 'Select Category',
+  disabled = false,
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        className={`w-full flex items-center justify-between text-left text-sm px-4 py-2.5 rounded-xl border transition-all cursor-pointer ${
+          disabled
+            ? 'bg-zinc-900 text-zinc-600 border-zinc-800 cursor-not-allowed'
+            : 'bg-zinc-950 text-white border-zinc-800 focus:outline-none focus:border-red-600'
+        } ${isOpen ? 'border-red-600 ring-1 ring-red-600' : ''}`}
+      >
+        <span className={value ? 'text-white font-medium' : 'text-zinc-500'}>
+          {value || placeholder}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-zinc-400 transition-transform duration-200 shrink-0 ${
+            isOpen ? 'rotate-180 text-red-500' : ''
+          }`}
+        />
+      </button>
+
+      {/* Dropdown Options List */}
+      {isOpen && (
+        <div className="absolute z-50 left-0 right-0 mt-1.5 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl max-h-56 overflow-y-auto py-1 text-sm animate-in fade-in zoom-in-95 duration-150">
+          {options.map((option) => {
+            const optionValue = typeof option === 'string' ? option : option.name;
+            const isSelected = optionValue === value;
+
+            return (
+              <button
+                key={option.id || optionValue}
+                type="button"
+                onClick={() => {
+                  onChange(optionValue);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2.5 flex items-center justify-between hover:bg-red-950/40 hover:text-red-400 transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-red-950/30 text-red-400 font-bold'
+                    : 'text-zinc-200'
+                }`}
+              >
+                <span className="truncate">{optionValue}</span>
+                {isSelected && <Check size={16} className="text-red-400 shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
   const [categories, setCategories] = useState([]);
@@ -98,8 +175,8 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
     } catch (err) {
       alert('Error adding product: ' + err.message);
     } finally {
-      setSubmitting(false);
-    }
+  setSubmitting(false);
+}
   };
 
   if (!isOpen) return null;
@@ -117,18 +194,15 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Category Select */}
+          {/* Custom Category Select */}
           <div>
             <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">Select Category</label>
-            <select
+            <CustomSelect
+              options={categories}
               value={formData.category}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-600 cursor-pointer"
-            >
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
-              ))}
-            </select>
+              onChange={handleCategoryChange}
+              placeholder="Select Category"
+            />
           </div>
 
           {/* Product Name */}

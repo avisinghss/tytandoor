@@ -261,8 +261,9 @@ export default function AdminDashboard({ onLogout }) {
     fetchProjects();
   };
 
+  // Shortened 'Products Collection' to 'Products' for better layout fit
   const navTabs = [
-    { id: 'products', label: 'Products Collection', icon: PackagePlus },
+    { id: 'products', label: 'Products', icon: PackagePlus },
     { id: 'categories', label: 'Categories', icon: Layers },
     { id: 'enquiries', label: 'Enquiries', icon: ShoppingBag },
     { id: 'calls', label: 'Call Requests', icon: Phone },
@@ -271,13 +272,13 @@ export default function AdminDashboard({ onLogout }) {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col md:flex-row font-sans">
+    <div className="h-screen w-full bg-zinc-950 text-zinc-100 flex flex-col md:flex-row font-sans overflow-hidden">
       
       {/* Mobile Top Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800 sticky top-0 z-40">
-        <h1 className="text-lg font-black text-red-600 tracking-wider">TYTAN ADMIN</h1>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-zinc-400 focus:outline-hidden">
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+      <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800 shrink-0 z-40">
+        <h1 className="text-base font-black text-red-600 tracking-wider">TYTAN ADMIN</h1>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-zinc-400 focus:outline-none cursor-pointer">
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
@@ -285,24 +286,27 @@ export default function AdminDashboard({ onLogout }) {
       {mobileMenuOpen && (
         <div 
           onClick={() => setMobileMenuOpen(false)}
-          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-40"
+          className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-xs z-40"
         />
       )}
 
-      {/* Sidebar Navigation */}
-      <aside className={`fixed md:relative inset-y-0 left-0 z-50 w-72 md:w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col justify-between p-6 transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-200 ease-in-out shadow-2xl md:shadow-none`}>
-        <div className="space-y-8">
+      {/* Sidebar Navigation (Fixed on Desktop, Drawer on Mobile) */}
+      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col justify-between p-5 transform ${
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0 transition-transform duration-200 ease-in-out shadow-2xl md:shadow-none shrink-0 h-full`}>
+        
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-black text-red-600 tracking-wider uppercase">TYTAN DOOR</h1>
               <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">Control Panel</p>
             </div>
             <button onClick={() => setMobileMenuOpen(false)} className="md:hidden text-zinc-400 hover:text-white">
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
 
-          <nav className="space-y-2">
+          <nav className="space-y-1.5">
             {navTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -310,35 +314,39 @@ export default function AdminDashboard({ onLogout }) {
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer ${
-                    isActive ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-400 hover:bg-zinc-800/60'
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                    isActive 
+                      ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' 
+                      : 'text-zinc-400 hover:bg-zinc-800/80 hover:text-white'
                   }`}
                 >
-                  <Icon size={18} />
-                  <span>{tab.label}</span>
+                  <Icon size={18} className="shrink-0" />
+                  <span className="truncate">{tab.label}</span>
                 </button>
               );
             })}
           </nav>
         </div>
 
-        <button
-          onClick={onLogout}
-          className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-red-500 transition py-2 px-4 cursor-pointer"
-        >
-          <LogOut size={16} />
-          <span>Sign Out</span>
-        </button>
+        <div className="pt-4 border-t border-zinc-800">
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-red-500 hover:bg-zinc-800/50 py-2.5 px-3 rounded-xl transition cursor-pointer"
+          >
+            <LogOut size={16} />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </aside>
 
-      {/* Dynamic Content Area */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      {/* Main Dynamic Content Area (Independently Scrollable) */}
+      <main className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
         {isLoading ? (
-          <div className="flex items-center justify-center h-64 text-zinc-500">
+          <div className="flex items-center justify-center h-full text-zinc-500">
             <p className="animate-pulse font-medium text-sm">Loading Dashboard Data...</p>
           </div>
         ) : (
-          <>
+          <div className="max-w-7xl mx-auto">
             {activeTab === 'products' && (
               <ProductsTab
                 products={products}
@@ -394,7 +402,7 @@ export default function AdminDashboard({ onLogout }) {
                 onDeleteProject={handleDeleteProject}
               />
             )}
-          </>
+          </div>
         )}
 
         {/* Modals */}

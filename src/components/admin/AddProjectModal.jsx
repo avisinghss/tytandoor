@@ -1,6 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../services/supabaseClient';
-import { X, FolderPlus, Loader2 } from 'lucide-react';
+import { X, FolderPlus, Loader2, ChevronDown, Check } from 'lucide-react';
+
+const STATUS_OPTIONS = [
+  { label: 'RUNNING', value: 'RUNNING' },
+  { label: 'COMPLETED', value: 'COMPLETED' },
+];
+
+// Reusable Custom Dropdown Component
+function CustomSelect({
+  options = [],
+  value,
+  onChange,
+  placeholder = 'Select Status',
+  disabled = false,
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((opt) => opt.value === value || opt === value);
+  const displayLabel = selectedOption
+    ? typeof selectedOption === 'object'
+      ? selectedOption.label
+      : selectedOption
+    : value;
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        className={`w-full flex items-center justify-between text-left text-sm px-4 py-2.5 rounded-xl border transition-all cursor-pointer ${
+          disabled
+            ? 'bg-zinc-900 text-zinc-600 border-zinc-800 cursor-not-allowed'
+            : 'bg-zinc-950 text-white border-zinc-800 focus:outline-none focus:border-red-600'
+        } ${isOpen ? 'border-red-600 ring-1 ring-red-600' : ''}`}
+      >
+        <span className={value ? 'text-white font-medium' : 'text-zinc-500'}>
+          {displayLabel || placeholder}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-zinc-400 transition-transform duration-200 shrink-0 ${
+            isOpen ? 'rotate-180 text-red-500' : ''
+          }`}
+        />
+      </button>
+
+      {/* Dropdown Options List */}
+      {isOpen && (
+        <div className="absolute z-50 left-0 right-0 mt-1.5 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl max-h-56 overflow-y-auto py-1 text-sm animate-in fade-in zoom-in-95 duration-150">
+          {options.map((option, idx) => {
+            const optionValue = typeof option === 'object' ? option.value : option;
+            const optionLabel = typeof option === 'object' ? option.label : option;
+            const isSelected = optionValue === value;
+
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  onChange(optionValue);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2.5 flex items-center justify-between hover:bg-red-950/40 hover:text-red-400 transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-red-950/30 text-red-400 font-bold'
+                    : 'text-zinc-200'
+                }`}
+              >
+                <span className="truncate">{optionLabel}</span>
+                {isSelected && <Check size={16} className="text-red-400 shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AddProjectModal({ isOpen, onClose, onProjectAdded }) {
   const [formData, setFormData] = useState({ name: '', client: '', status: 'RUNNING' });
@@ -79,14 +169,12 @@ export default function AddProjectModal({ isOpen, onClose, onProjectAdded }) {
             <label className="block text-xs font-bold text-zinc-400 uppercase mb-1">
               Status
             </label>
-            <select
+            <CustomSelect
+              options={STATUS_OPTIONS}
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-600 transition"
-            >
-              <option value="RUNNING">RUNNING</option>
-              <option value="COMPLETED">COMPLETED</option>
-            </select>
+              onChange={(val) => setFormData({ ...formData, status: val })}
+              placeholder="Select Status"
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800 mt-6">

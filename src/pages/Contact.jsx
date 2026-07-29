@@ -1,10 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { 
   Phone, Mail, Clock, Send, Building2, Factory, 
   CheckCircle2, MessageSquare, ChevronDown, FileText, 
-  ShieldCheck, ArrowRight, Loader2 
+  ShieldCheck, ArrowRight, Loader2, Check 
 } from 'lucide-react';
+
+const INQUIRY_OPTIONS = [
+  'Homeowner / Retail Purchase',
+  'Architect / Interior Designer',
+  'Commercial Developer / Contractor',
+  'Distributor / Dealer Inquiry',
+  'Warranty Claim',
+];
+
+// Reusable Custom Select Component to prevent Mobile Native Radio Popup
+function CustomSelect({
+  options = [],
+  value,
+  onChange,
+  placeholder = 'Select Inquiry Topic',
+  disabled = false,
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        className={`w-full flex items-center justify-between text-left text-sm px-3.5 py-2.5 rounded-xl border transition-all cursor-pointer ${
+          disabled
+            ? 'bg-slate-100 dark:bg-zinc-800 text-slate-400 border-slate-300 dark:border-zinc-700 cursor-not-allowed'
+            : 'bg-white dark:bg-zinc-950 text-slate-900 dark:text-white border-slate-300 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600'
+        } ${isOpen ? 'ring-2 ring-red-600 border-red-600' : ''}`}
+      >
+        <span className={value ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-400'}>
+          {value || placeholder}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-slate-400 dark:text-zinc-400 transition-transform duration-200 shrink-0 ${
+            isOpen ? 'rotate-180 text-red-600 dark:text-red-500' : ''
+          }`}
+        />
+      </button>
+
+      {/* Dropdown Options List */}
+      {isOpen && (
+        <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-56 overflow-y-auto py-1 text-sm animate-in fade-in zoom-in-95 duration-150">
+          {options.map((option, idx) => {
+            const isSelected = option === value;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  onChange(option);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2.5 flex items-center justify-between hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-bold'
+                    : 'text-slate-700 dark:text-zinc-200'
+                }`}
+              >
+                <span className="truncate">{option}</span>
+                {isSelected && <Check size={16} className="text-red-600 dark:text-red-400 shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
@@ -16,7 +99,7 @@ export default function Contact() {
     name: '',
     email: '',
     phone: '',
-    inquiryType: 'Homeowner',
+    inquiryType: 'Homeowner / Retail Purchase',
     message: '',
   });
 
@@ -44,7 +127,7 @@ export default function Contact() {
         name: '',
         email: '',
         phone: '',
-        inquiryType: 'Homeowner',
+        inquiryType: 'Homeowner / Retail Purchase',
         message: '',
       });
     } catch (err) {
@@ -59,6 +142,10 @@ export default function Contact() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleCustomSelectChange = (value) => {
+    setFormData((prev) => ({ ...prev, inquiryType: value }));
+  };
+
   const faqs = [
     {
       q: "What warranty coverage do Tytan Doors come with?",
@@ -70,7 +157,7 @@ export default function Contact() {
     },
     {
       q: "Can I request physical material samples or a product catalog?",
-      a: "Optionally select 'Architect / Builder' as your role in the contact form or call our team directly to request an architectural sample kit."
+      a: "Optionally select 'Architect / Interior Designer' as your role in the contact form or call our team directly to request an architectural sample kit."
     },
     {
       q: "What is the typical lead time for bulk orders?",
@@ -183,21 +270,16 @@ export default function Contact() {
                     />
                   </div>
 
+                  {/* Inquiry Topic Custom Dropdown */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
                       Inquiry Topic
                     </label>
-                    <select
-                      name="inquiryType"
+                    <CustomSelect
+                      options={INQUIRY_OPTIONS}
                       value={formData.inquiryType}
-                      onChange={handleChange}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
-                    >
-                      <option value="Homeowner">Homeowner / Retail Purchase</option>
-                      <option value="Architect/Builder">Architect / Interior Designer</option>
-                      <option value="Commercial">Commercial Developer / Contractor</option>
-                      <option value="Dealer">Distributor / Dealer Inquiry</option>
-                    </select>
+                      onChange={handleCustomSelectChange}
+                    />
                   </div>
                 </div>
 
@@ -257,7 +339,7 @@ export default function Contact() {
                   <div className="pt-2">
                     <button
                       onClick={() => {
-                        setFormData(prev => ({ ...prev, inquiryType: 'Warranty Claim' }));
+                        setFormData((prev) => ({ ...prev, inquiryType: 'Warranty Claim' }));
                         window.scrollTo({ top: 300, behavior: 'smooth' });
                       }}
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
