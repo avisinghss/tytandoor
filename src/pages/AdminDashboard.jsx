@@ -48,6 +48,23 @@ export default function AdminDashboard({ onLogout }) {
     message: '',
   });
 
+  // Request Notification Permissions on Mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Helper to trigger Browser Notifications
+  const triggerNotification = (title, body) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body,
+        icon: '/pwa-192x192.png'
+      });
+    }
+  };
+
   // ---------------- FETCH DATA ----------------
   const fetchEnquiries = useCallback(async () => {
     const { data, error } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
@@ -102,6 +119,33 @@ export default function AdminDashboard({ onLogout }) {
 
     fetchAllData();
   }, [fetchEnquiries, fetchCallRequests, fetchStaff, fetchProjects, fetchProducts, fetchCategories]);
+
+  // ---------------- REALTIME SUBSCRIPTION FOR LIVE AUTO-REFRESH ----------------
+  useEffect(() => {
+    const enquiriesChannel = supabase
+      .channel('realtime_enquiries')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'enquiries' },
+        (payload) => {
+          setEnquiries((prev) => [payload.new, ...prev]);
+          triggerNotification('🚨 New Enquiry Received!', `From: ${payload.new.name || 'New Customer'}`);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'call_requests' },
+        (payload) => {
+          setCallRequests((prev) => [payload.new, ...prev]);
+          triggerNotification('📞 New Call Request!', `Phone: ${payload.new.phone || 'New Request'}`);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(enquiriesChannel);
+    };
+  }, []);
 
   // ---------------- FEATURED TOGGLE HANDLER ----------------
   const toggleFeaturedStatus = async (id, currentStatus) => {
@@ -261,7 +305,6 @@ export default function AdminDashboard({ onLogout }) {
     fetchProjects();
   };
 
-  // Shortened 'Products Collection' to 'Products' for better layout fit
   const navTabs = [
     { id: 'products', label: 'Products', icon: PackagePlus },
     { id: 'categories', label: 'Categories', icon: Layers },
@@ -290,7 +333,7 @@ export default function AdminDashboard({ onLogout }) {
         />
       )}
 
-      {/* Sidebar Navigation (Fixed on Desktop, Drawer on Mobile) */}
+      {/* Sidebar Navigation */}
       <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col justify-between p-5 transform ${
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0 transition-transform duration-200 ease-in-out shadow-2xl md:shadow-none shrink-0 h-full`}>
@@ -339,7 +382,7 @@ export default function AdminDashboard({ onLogout }) {
         </div>
       </aside>
 
-      {/* Main Dynamic Content Area (Independently Scrollable) */}
+      {/* Main Content Area */}
       <main className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
         {isLoading ? (
           <div className="flex items-center justify-center h-full text-zinc-500">
