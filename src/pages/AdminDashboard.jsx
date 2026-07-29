@@ -3,7 +3,7 @@ import { supabase } from '../services/supabaseClient';
 import * as XLSX from 'xlsx';
 import { 
   Phone, Users, FolderKanban, LogOut, 
-  Menu, X, PackagePlus, Layers, ShoppingBag, Download, Bell, BellRing
+  Menu, X, PackagePlus, Layers, ShoppingBag, Download, Bell, BellRing, Check, Trash2
 } from 'lucide-react';
 
 import EnquiriesTab from '../components/admin/EnquiriesTab';
@@ -22,8 +22,10 @@ export default function AdminDashboard({ onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Notification Permission State
+  // Notification Permission & Center State
   const [notiPermission, setNotiPermission] = useState('default');
+  const [notifications, setNotifications] = useState([]);
+  const [showNotiDropdown, setShowNotiDropdown] = useState(false);
 
   // PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -121,12 +123,23 @@ export default function AdminDashboard({ onLogout }) {
     setDeferredPrompt(null);
   };
 
-  // ---------------- 4. NOTIFICATION PERMISSION & HELPER ----------------
+  // ---------------- 4. NOTIFICATION PERMISSION & SOUND TRIGGER ----------------
   useEffect(() => {
     if ('Notification' in window) {
       setNotiPermission(Notification.permission);
     }
   }, []);
+
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.play().catch(() => {
+        // Autoplay restrictions handle fallback
+      });
+    } catch (err) {
+      console.error('Audio playback failed', err);
+    }
+  };
 
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
@@ -138,42 +151,75 @@ export default function AdminDashboard({ onLogout }) {
     setNotiPermission(permission);
 
     if (permission === 'granted') {
-      triggerNotification('Notifications Active! 🔔', 'You will receive real-time updates for enquiries and calls.', 'enquiries');
+      triggerNotification('Inquiries', 'Dear Sir, You got a new notification active status update.');
     } else {
       alert('Notifications are blocked by Chrome. Please tap the lock icon on your address bar to allow permissions.');
     }
   };
 
-  const triggerNotification = async (title, body, targetTab = 'enquiries') => {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const triggerNotification = async (categoryName, bodyMessage, targetTab = 'enquiries') => {
+    // 1. Play Tone
+    playNotificationSound();
 
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration) {
-          registration.showNotification(title, {
-            body,
-            icon: '/pwa-192x192.png',
-            badge: '/pwa-192x192.png',
-            vibrate: [200, 100, 200],
-            data: { targetTab }
-          });
-          return;
-        }
-      } catch (err) {
-        console.error('Service worker notification error:', err);
-      }
-    }
+    const title = `🚨 New ${categoryName}!`;
+    const formattedBody = `Dear Sir, ${bodyMessage}`;
 
-    const noti = new Notification(title, {
-      body,
-      icon: '/pwa-192x192.png'
-    });
-
-    noti.onclick = () => {
-      window.focus();
-      setActiveTab(targetTab);
+    // 2. Add to In-App Dropdown List
+    const newNotiObj = {
+      id: Date.now(),
+      title,
+      body: formattedBody,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      read: false,
+      targetTab
     };
+    setNotifications((prev) => [newNotiObj, ...prev]);
+
+    // 3. Show System / Mobile Phone Push Notification
+    if (('Notification' in window) && Notification.permission === 'granted') {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration) {
+            registration.showNotification(title, {
+              body: formattedBody,
+              icon: '/pwa-192x192.png',
+              badge: '/pwa-192x192.png',
+              vibrate: [200, 100, 200],
+              data: { targetTab }
+            });
+            return;
+          }
+        } catch (err) {
+          console.error('Service worker notification error:', err);
+        }
+      }
+
+      const noti = new Notification(title, {
+        body: formattedBody,
+        icon: '/pwa-192x192.png'
+      });
+
+      noti.onclick = () => {
+        window.focus();
+        setActiveTab(targetTab);
+      };
+    }
+  };
+
+  // Notification Actions
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+  const handleNotificationClick = (noti) => {
+    setNotifications((prev) => prev.map((n) => n.id === noti.id ? { ...n, read: true } : n));
+    setActiveTab(noti.targetTab);
+    setShowNotiDropdown(false);
   };
 
   // ---------------- FETCH DATA ----------------
@@ -246,7 +292,7 @@ export default function AdminDashboard({ onLogout }) {
         { event: 'INSERT', schema: 'public', table: 'enquiries' },
         (payload) => {
           setEnquiries((prev) => [payload.new, ...prev]);
-          triggerNotification('🚨 New Enquiry Received!', `From: ${payload.new.name || 'New Customer'}`, 'enquiries');
+          triggerNotification('Enquiry', `You got a new enquiry from ${payload.new.name || 'a customer'}.`, 'enquiries');
         }
       )
       .on(
@@ -254,7 +300,7 @@ export default function AdminDashboard({ onLogout }) {
         { event: 'INSERT', schema: 'public', table: 'contact_submissions' },
         (payload) => {
           setContactSubmissions((prev) => [payload.new, ...prev]);
-          triggerNotification('📩 New Contact Submission!', `From: ${payload.new.name || 'New Submission'}`, 'enquiries');
+          triggerNotification('Contact Submission', `You got a new contact form submission from ${payload.new.name || 'a user'}.`, 'enquiries');
         }
       )
       .on(
@@ -262,7 +308,7 @@ export default function AdminDashboard({ onLogout }) {
         { event: 'INSERT', schema: 'public', table: 'call_requests' },
         (payload) => {
           setCallRequests((prev) => [payload.new, ...prev]);
-          triggerNotification('📞 New Call Request!', `Phone: ${payload.new.phone || 'New Request'}`, 'calls');
+          triggerNotification('Call Request', `You got a new call request for ${payload.new.phone || 'a phone number'}.`, 'calls');
         }
       )
       .subscribe();
@@ -451,6 +497,8 @@ export default function AdminDashboard({ onLogout }) {
     { id: 'projects', label: 'Projects', icon: FolderKanban },
   ];
 
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
   return (
     <div className="h-screen w-full bg-zinc-950 text-zinc-100 flex flex-col md:flex-row font-sans overflow-hidden">
       
@@ -459,18 +507,31 @@ export default function AdminDashboard({ onLogout }) {
         <h1 className="text-base font-black text-red-600 tracking-wider">TYTAN ADMIN</h1>
         
         <div className="flex items-center gap-2">
-          {/* Notification Alert Status Button */}
-          <button
-            onClick={requestNotificationPermission}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
-              notiPermission === 'granted'
-                ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30'
-                : 'bg-amber-600 hover:bg-amber-700 text-white animate-pulse'
-            }`}
-          >
-            {notiPermission === 'granted' ? <Bell size={14} /> : <BellRing size={14} />}
-            <span>{notiPermission === 'granted' ? 'Alerts On' : 'Enable Alerts'}</span>
-          </button>
+          {/* Notification Bell Dropdown Trigger */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotiDropdown(!showNotiDropdown)}
+              className="relative p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer transition-colors"
+            >
+              <Bell size={18} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-bounce">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Show "Enable Alerts" Button ONLY IF permission is not granted */}
+          {notiPermission !== 'granted' && (
+            <button
+              onClick={requestNotificationPermission}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer bg-amber-600 hover:bg-amber-700 text-white animate-pulse"
+            >
+              <BellRing size={14} />
+              <span>Enable Alerts</span>
+            </button>
+          )}
 
           {/* PWA Install Button */}
           {showInstallBtn && (
@@ -545,17 +606,16 @@ export default function AdminDashboard({ onLogout }) {
         </div>
 
         <div className="pt-4 border-t border-zinc-800 space-y-2">
-          <button
-            onClick={requestNotificationPermission}
-            className={`w-full flex items-center justify-center gap-2 text-xs font-bold py-2.5 px-3 rounded-xl transition cursor-pointer ${
-              notiPermission === 'granted'
-                ? 'bg-zinc-800 text-emerald-400 hover:bg-zinc-700'
-                : 'bg-amber-600 hover:bg-amber-700 text-white'
-            }`}
-          >
-            {notiPermission === 'granted' ? <Bell size={16} /> : <BellRing size={16} />}
-            <span>{notiPermission === 'granted' ? 'Notifications Active' : 'Enable Notifications'}</span>
-          </button>
+          {/* Show "Enable Notifications" Button ONLY IF permission is NOT granted */}
+          {notiPermission !== 'granted' && (
+            <button
+              onClick={requestNotificationPermission}
+              className="w-full flex items-center justify-center gap-2 text-xs font-bold py-2.5 px-3 rounded-xl transition cursor-pointer bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              <BellRing size={16} />
+              <span>Enable Notifications</span>
+            </button>
+          )}
 
           {showInstallBtn && (
             <button
@@ -578,7 +638,79 @@ export default function AdminDashboard({ onLogout }) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8 relative">
+        {/* Top Header Desktop Bar (With Notification Dropdown) */}
+        <div className="hidden md:flex justify-end items-center mb-6 relative">
+          <div className="relative">
+            <button
+              onClick={() => setShowNotiDropdown(!showNotiDropdown)}
+              className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-200 rounded-xl cursor-pointer transition"
+            >
+              <Bell size={18} className="text-zinc-400" />
+              <span className="text-xs font-bold">Notifications</span>
+              {unreadCount > 0 && (
+                <span className="bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Global Notification Center Dropdown */}
+        {showNotiDropdown && (
+          <div className="absolute right-4 md:right-8 top-16 w-80 md:w-96 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl z-50 overflow-hidden font-sans">
+            <div className="flex items-center justify-between p-3.5 bg-zinc-950 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <Bell size={16} className="text-red-500" />
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-zinc-200">Notifications Center</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button 
+                    onClick={markAllAsRead} 
+                    className="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Check size={12} /> Mark Read
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button 
+                    onClick={clearAllNotifications} 
+                    className="text-[11px] font-semibold text-zinc-400 hover:text-red-400 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 size={12} /> Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="max-h-80 overflow-y-auto divide-y divide-zinc-800/60">
+              {notifications.length === 0 ? (
+                <div className="p-6 text-center text-zinc-500 text-xs font-medium">
+                  No notifications recorded yet.
+                </div>
+              ) : (
+                notifications.map((noti) => (
+                  <div
+                    key={noti.id}
+                    onClick={() => handleNotificationClick(noti)}
+                    className={`p-3.5 transition cursor-pointer hover:bg-zinc-800/50 flex flex-col gap-1 ${
+                      noti.read ? 'opacity-60 bg-zinc-900' : 'bg-zinc-900/90 border-l-4 border-red-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-red-500">{noti.title}</span>
+                      <span className="text-[10px] text-zinc-500">{noti.time}</span>
+                    </div>
+                    <p className="text-xs text-zinc-300 font-medium leading-relaxed">{noti.body}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex items-center justify-center h-full text-zinc-500">
             <p className="animate-pulse font-medium text-sm">Loading Dashboard Data...</p>
