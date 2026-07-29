@@ -17,6 +17,18 @@ import AddStaffModal from '../components/admin/AddStaffModal';
 import AddProjectModal from '../components/admin/AddProjectModal';
 import DeleteConfirmModal from '../components/admin/DeleteConfirmModal';
 
+// Helper function to decode VAPID public key for PushManager
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('products');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -167,8 +179,6 @@ export default function AdminDashboard({ onLogout }) {
   };
 
   // ---------------- 4. MOBILE PWA RESUME & AUTO-SYNC ----------------
-  // Mobile OS kills background WebSocket sockets when PWA is backgrounded/locked.
-  // This listener forces an immediate re-fetch whenever the user re-opens or unlocks the PWA.
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -263,8 +273,9 @@ export default function AdminDashboard({ onLogout }) {
     }
   }, []);
 
+  // UPDATED STEP 2: Request permission & save Web Push token to Supabase
   const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
       alert('This browser does not support push notifications.');
       return;
     }
@@ -273,9 +284,30 @@ export default function AdminDashboard({ onLogout }) {
     setNotiPermission(permission);
 
     if (permission === 'granted') {
-      triggerNotification('Inquiries', 'Dear Sir, You got a new notification active status update.');
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        
+        // Subscribe the device to the browser push manager using VAPID Key
+        const subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array('BLY_DF7rxRws6WU_RwoDuSjXC4ko4-Mrx1S3mwxivxZIpawK2PWJBS15Nj1uuhFp1C6nacWPrOfEvpwCdtT4bAs')
+        });
+
+        // Save subscription token to Supabase 'push_subscriptions' table
+        const { error } = await supabase.from('push_subscriptions').upsert([
+          { subscription: subscription.toJSON() }
+        ]);
+
+        if (error) {
+          console.error('Error saving subscription to Supabase:', error.message);
+        } else {
+          triggerNotification('Inquiries', 'Background alerts enabled successfully!');
+        }
+      } catch (err) {
+        console.error('Error setting up Web Push subscription:', err);
+      }
     } else {
-      alert('Notifications are blocked by Chrome. Please tap the lock icon on your address bar to allow permissions.');
+      alert('Notifications are blocked. Please allow permissions in your browser site settings.');
     }
   };
 

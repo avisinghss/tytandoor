@@ -9,7 +9,33 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
-// 2. Handle System Notification Clicks
+// 2. LISTEN FOR PUSH NOTIFICATIONS (YE MISSING THA!)
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  try {
+    const data = event.data.json();
+
+    const title = data.title || 'New Notification';
+    const options = {
+      body: data.body || 'You have a new update.',
+      icon: data.icon || '/icon-192x192.png', // Apne app icon ka path yahan check kar lein
+      badge: data.badge || '/icon-192x192.png',
+      data: {
+        targetTab: data.targetTab || 'enquiries',
+        url: data.url || '/admin',
+      },
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  } catch (err) {
+    console.error('Error handling push event:', err);
+  }
+});
+
+// 3. Handle System Notification Clicks
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
