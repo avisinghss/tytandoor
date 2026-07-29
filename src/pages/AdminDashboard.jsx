@@ -55,7 +55,7 @@ export default function AdminDashboard({ onLogout }) {
     message: '',
   });
 
-  // ---------------- 1. DYNAMIC MANIFEST INJECTION FOR ADMIN ROUTE ----------------
+  // ---------------- 1. DYNAMIC MANIFEST INJECTION ----------------
   useEffect(() => {
     let manifestLink = document.querySelector('link[rel="manifest"]');
     if (!manifestLink) {
@@ -72,12 +72,27 @@ export default function AdminDashboard({ onLogout }) {
     };
   }, []);
 
-  // ---------------- 2. PWA INSTALL PROMPT LISTENER (PHONES/TABLETS ONLY) ----------------
+  // ---------------- 2. LISTEN FOR SERVICE WORKER NOTIFICATION CLICKS (NO REFRESH NEEDED) ----------------
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      const handleSWMessage = (event) => {
+        if (event.data && event.data.type === 'NAVIGATE_TAB') {
+          setActiveTab(event.data.tab);
+        }
+      };
+
+      navigator.serviceWorker.addEventListener('message', handleSWMessage);
+      return () => {
+        navigator.serviceWorker.removeEventListener('message', handleSWMessage);
+      };
+    }
+  }, []);
+
+  // ---------------- 3. PWA INSTALL PROMPT LISTENER (PHONES/TABLETS ONLY) ----------------
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
 
-      // Restrict install option: check if mobile/tablet user agent OR screen width < 1024px
       const isMobileOrTablet = 
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
         window.innerWidth < 1024;
@@ -105,7 +120,7 @@ export default function AdminDashboard({ onLogout }) {
     setDeferredPrompt(null);
   };
 
-  // ---------------- 3. NOTIFICATION PERMISSION & HELPER WITH REDIRECT ----------------
+  // ---------------- 4. NOTIFICATION PERMISSION & HELPER ----------------
   useEffect(() => {
     if ('Notification' in window) {
       setNotiPermission(Notification.permission);
@@ -114,7 +129,7 @@ export default function AdminDashboard({ onLogout }) {
 
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
-      alert('This browser does not support desktop or mobile push notifications.');
+      alert('This browser does not support push notifications.');
       return;
     }
 
@@ -122,16 +137,15 @@ export default function AdminDashboard({ onLogout }) {
     setNotiPermission(permission);
 
     if (permission === 'granted') {
-      triggerNotification('Notifications Enabled!', 'You will now receive instant alerts for new enquiries and calls.', 'enquiries');
+      triggerNotification('Notifications Active! 🔔', 'You will receive real-time updates for enquiries and calls.', 'enquiries');
     } else {
-      alert('Notification permission was denied. Please enable it in your browser settings.');
+      alert('Notifications are blocked by Chrome. Please tap the lock icon on your address bar to allow permissions.');
     }
   };
 
   const triggerNotification = async (title, body, targetTab = 'enquiries') => {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-    // Mobile Service Worker notification logic
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.getRegistration();
@@ -150,7 +164,6 @@ export default function AdminDashboard({ onLogout }) {
       }
     }
 
-    // Standard Desktop browser notification with click listener
     const noti = new Notification(title, {
       body,
       icon: '/pwa-192x192.png'
@@ -426,7 +439,6 @@ export default function AdminDashboard({ onLogout }) {
                 ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30'
                 : 'bg-amber-600 hover:bg-amber-700 text-white animate-pulse'
             }`}
-            title="Enable/Test Notifications"
           >
             {notiPermission === 'granted' ? <Bell size={14} /> : <BellRing size={14} />}
             <span>{notiPermission === 'granted' ? 'Alerts On' : 'Enable Alerts'}</span>
@@ -505,7 +517,6 @@ export default function AdminDashboard({ onLogout }) {
         </div>
 
         <div className="pt-4 border-t border-zinc-800 space-y-2">
-          {/* Desktop/Tablet Notification Settings Switch */}
           <button
             onClick={requestNotificationPermission}
             className={`w-full flex items-center justify-center gap-2 text-xs font-bold py-2.5 px-3 rounded-xl transition cursor-pointer ${
