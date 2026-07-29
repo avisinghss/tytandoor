@@ -31,6 +31,7 @@ export default function AdminDashboard({ onLogout }) {
 
   // Data States
   const [enquiries, setEnquiries] = useState([]);
+  const [contactSubmissions, setContactSubmissions] = useState([]);
   const [callRequests, setCallRequests] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -72,7 +73,7 @@ export default function AdminDashboard({ onLogout }) {
     };
   }, []);
 
-  // ---------------- 2. LISTEN FOR SERVICE WORKER NOTIFICATION CLICKS (NO REFRESH NEEDED) ----------------
+  // ---------------- 2. LISTEN FOR SERVICE WORKER NOTIFICATION CLICKS ----------------
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       const handleSWMessage = (event) => {
@@ -88,7 +89,7 @@ export default function AdminDashboard({ onLogout }) {
     }
   }, []);
 
-  // ---------------- 3. PWA INSTALL PROMPT LISTENER (PHONES/TABLETS ONLY) ----------------
+  // ---------------- 3. PWA INSTALL PROMPT LISTENER ----------------
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
@@ -182,6 +183,12 @@ export default function AdminDashboard({ onLogout }) {
     else if (data) setEnquiries(data);
   }, []);
 
+  const fetchContactSubmissions = useCallback(async () => {
+    const { data, error } = await supabase.from('contact_submissions').select('*').order('created_at', { ascending: false });
+    if (error) console.error('Error fetching contact submissions:', error.message);
+    else if (data) setContactSubmissions(data);
+  }, []);
+
   const fetchCallRequests = useCallback(async () => {
     const { data, error } = await supabase.from('call_requests').select('*').order('created_at', { ascending: false });
     if (error) console.error('Error fetching call requests:', error.message);
@@ -217,6 +224,7 @@ export default function AdminDashboard({ onLogout }) {
       setIsLoading(true);
       await Promise.all([
         fetchEnquiries(),
+        fetchContactSubmissions(),
         fetchCallRequests(),
         fetchStaff(),
         fetchProjects(),
@@ -227,7 +235,7 @@ export default function AdminDashboard({ onLogout }) {
     };
 
     fetchAllData();
-  }, [fetchEnquiries, fetchCallRequests, fetchStaff, fetchProjects, fetchProducts, fetchCategories]);
+  }, [fetchEnquiries, fetchContactSubmissions, fetchCallRequests, fetchStaff, fetchProjects, fetchProducts, fetchCategories]);
 
   // ---------------- REALTIME SUBSCRIPTION ----------------
   useEffect(() => {
@@ -239,6 +247,14 @@ export default function AdminDashboard({ onLogout }) {
         (payload) => {
           setEnquiries((prev) => [payload.new, ...prev]);
           triggerNotification('🚨 New Enquiry Received!', `From: ${payload.new.name || 'New Customer'}`, 'enquiries');
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'contact_submissions' },
+        (payload) => {
+          setContactSubmissions((prev) => [payload.new, ...prev]);
+          triggerNotification('📩 New Contact Submission!', `From: ${payload.new.name || 'New Submission'}`, 'enquiries');
         }
       )
       .on(
@@ -255,6 +271,12 @@ export default function AdminDashboard({ onLogout }) {
       supabase.removeChannel(enquiriesChannel);
     };
   }, []);
+
+  // ---------------- COMBINE INQUIRIES & CONTACT SUBMISSIONS ----------------
+  const combinedInquiries = [
+    ...enquiries.map((item) => ({ ...item, sourceType: 'enquiry' })),
+    ...contactSubmissions.map((item) => ({ ...item, sourceType: 'contact_submission' })),
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   // ---------------- FEATURED TOGGLE ----------------
   const toggleFeaturedStatus = async (id, currentStatus) => {
@@ -326,13 +348,16 @@ export default function AdminDashboard({ onLogout }) {
     fetchCallRequests();
   };
 
-  const handleDeleteEnquiry = (id, name) => {
+  const handleDeleteCombinedInquiry = (id, name) => {
+    const targetItem = combinedInquiries.find((item) => item.id === id);
+    const isSubmission = targetItem?.sourceType === 'contact_submission';
+
     setDeleteModal({
       isOpen: true,
-      type: 'enquiry',
+      type: isSubmission ? 'contact_submission' : 'enquiry',
       id,
-      title: 'Delete Enquiry',
-      message: `Are you sure you want to delete the enquiry from ${name || 'this user'}?`,
+      title: isSubmission ? 'Delete Contact Submission' : 'Delete Enquiry',
+      message: `Are you sure you want to delete the entry from ${name || 'this user'}?`,
     });
   };
 
@@ -383,6 +408,9 @@ export default function AdminDashboard({ onLogout }) {
     if (type === 'enquiry') {
       ({ error } = await supabase.from('enquiries').delete().eq('id', id));
       if (!error) fetchEnquiries();
+    } else if (type === 'contact_submission') {
+      ({ error } = await supabase.from('contact_submissions').delete().eq('id', id));
+      if (!error) fetchContactSubmissions();
     } else if (type === 'staff') {
       ({ error } = await supabase.from('staff').delete().eq('id', id));
       if (!error) fetchStaff();
@@ -417,7 +445,7 @@ export default function AdminDashboard({ onLogout }) {
   const navTabs = [
     { id: 'products', label: 'Products', icon: PackagePlus },
     { id: 'categories', label: 'Categories', icon: Layers },
-    { id: 'enquiries', label: 'Enquiries', icon: ShoppingBag, count: enquiries.length },
+    { id: 'enquiries', label: 'Inquiries & Forms', icon: ShoppingBag, count: combinedInquiries.length },
     { id: 'calls', label: 'Call Requests', icon: Phone, count: callRequests.length },
     { id: 'staff', label: 'Staff Directory', icon: Users },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
@@ -577,12 +605,12 @@ export default function AdminDashboard({ onLogout }) {
 
             {activeTab === 'enquiries' && (
               <EnquiriesTab
-                title="Enquiries"
+                title="Inquiries & Contact Submissions"
                 timeFilter={timeFilter}
                 setTimeFilter={setTimeFilter}
-                filteredEnquiries={filterByTime(enquiries)}
-                onExport={() => exportToExcel(enquiries, 'Enquiries')}
-                onDeleteEnquiry={handleDeleteEnquiry}
+                filteredEnquiries={filterByTime(combinedInquiries)}
+                onExport={() => exportToExcel(combinedInquiries, 'All_Inquiries')}
+                onDeleteEnquiry={handleDeleteCombinedInquiry}
               />
             )}
 
