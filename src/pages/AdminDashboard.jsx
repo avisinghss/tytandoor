@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 import * as XLSX from 'xlsx';
 import { 
-  Phone, Users, FolderKanban, LogOut, Menu, X, PackagePlus, Layers, ShoppingBag, Download, Bell, BellRing, ShieldCheck, Check, XCircle, FileText, Store, ExternalLink 
+  Phone, Users, FolderKanban, LogOut, Menu, X, PackagePlus, Layers, ShoppingBag, Download, Bell, BellRing, ShieldCheck 
 } from 'lucide-react';
 
 import EnquiriesTab from '../components/admin/EnquiriesTab';
@@ -12,20 +12,16 @@ import StaffTab from '../components/admin/StaffTab';
 import ProjectsTab from '../components/admin/ProjectsTab';
 import ProductsTab from '../components/admin/ProductsTab';
 import CategoriesTab from '../components/admin/CategoriesTab';
+import WarrantyTab from '../components/admin/WarrantyTab';
 import NotificationCenter from '../components/admin/NotificationCenter';
 import DashboardModals from '../components/admin/DashboardModals';
 import { useAdminData } from '../hooks/useAdminData';
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
+const urlBase64ToUint8Array = (base64) => {
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+  const rawData = window.atob((base64 + padding).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+};
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('products');
@@ -46,25 +42,23 @@ export default function AdminDashboard({ onLogout }) {
   const [selectedCallIds, setSelectedCallIds] = useState([]);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, id: null, title: '', message: '' });
 
-  // Play Notification Tone
+  const openDeleteModal = (type, id, title, message) => setDeleteModal({ isOpen: true, type, id, title, message });
+
   const playNotificationSound = () => {
-    try {
-      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-      audio.play().catch(() => {});
-    } catch (err) {
-      console.error('Audio playback failed', err);
-    }
+    new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(() => {});
   };
 
-  // Notification Trigger Callback
   const triggerNotification = useCallback(async (categoryName, bodyMessage, targetTab = 'enquiries') => {
     playNotificationSound();
     const title = `🚨 New ${categoryName}!`;
     const formattedBody = `Dear Sir, ${bodyMessage}`;
 
-    setNotifications((prev) => [{ id: Date.now(), title, body: formattedBody, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), read: false, targetTab }, ...prev]);
+    setNotifications((prev) => [
+      { id: Date.now(), title, body: formattedBody, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), read: false, targetTab }, 
+      ...prev
+    ]);
 
-    if (('Notification' in window) && Notification.permission === 'granted') {
+    if ('Notification' in window && Notification.permission === 'granted') {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.getRegistration();
         if (registration) {
@@ -77,13 +71,11 @@ export default function AdminDashboard({ onLogout }) {
     }
   }, []);
 
-  // Custom Data Hook
   const {
     isLoading, callRequests, staffList, projects, products, categories, combinedInquiries, warrantyClaims,
     setProducts, setWarrantyClaims, fetchEnquiries, fetchContactSubmissions, fetchCallRequests, fetchStaff, fetchProjects, fetchProducts, fetchCategories, fetchWarrantyClaims
   } = useAdminData(triggerNotification);
 
-  // Manifest & PWA Lifecycle
   useEffect(() => {
     let manifestLink = document.querySelector('link[rel="manifest"]') || document.createElement('link');
     manifestLink.rel = 'manifest';
@@ -137,7 +129,6 @@ export default function AdminDashboard({ onLogout }) {
     setDeferredPrompt(null);
   };
 
-  // Export & Action Handlers
   const filterByTime = (items) => {
     if (timeFilter === 'all') return items;
     const now = new Date();
@@ -167,32 +158,39 @@ export default function AdminDashboard({ onLogout }) {
     if (!error) fetchProjects();
   };
 
-  const handleUpdateClaimStatus = async (id, status) => {
-    const { error } = await supabase.from('warranty_claims').update({ status }).eq('id', id);
-    if (!error) {
-      setWarrantyClaims((prev) => prev.map((item) => item.id === id ? { ...item, status } : item));
+  // FIXED: Instant UI Update + Supabase Sync
+  const handleUpdateClaimStatus = async (id, status = 'APPROVED') => {
+    const nextStatus = String(status).toUpperCase();
+    
+    // 1. Immediately update UI state
+    setWarrantyClaims((prev) => 
+      prev.map((item) => (item.id === id ? { ...item, status: nextStatus } : item))
+    );
+
+    // 2. Sync to Supabase
+    const { error } = await supabase.from('warranty_claims').update({ status: nextStatus }).eq('id', id);
+    if (error) {
+      console.error("Failed to update status in Database:", error);
+      fetchWarrantyClaims(); // Revert state if DB update fails
     }
   };
 
   const handleConfirmDelete = async () => {
     const { type, id } = deleteModal;
-    let error;
-    if (type === 'enquiry') ({ error } = await supabase.from('enquiries').delete().eq('id', id));
-    else if (type === 'contact_submission') ({ error } = await supabase.from('contact_submissions').delete().eq('id', id));
-    else if (type === 'staff') ({ error } = await supabase.from('staff').delete().eq('id', id));
-    else if (type === 'project') ({ error } = await supabase.from('projects').delete().eq('id', id));
-    else if (type === 'product') ({ error } = await supabase.from('products').delete().eq('id', id));
-    else if (type === 'category') ({ error } = await supabase.from('categories').delete().eq('id', id));
-    else if (type === 'warranty_claim') ({ error } = await supabase.from('warranty_claims').delete().eq('id', id));
+    const deleteTargetMap = {
+      enquiry: ['enquiries', fetchEnquiries],
+      contact_submission: ['contact_submissions', fetchContactSubmissions],
+      staff: ['staff', fetchStaff],
+      project: ['projects', fetchProjects],
+      product: ['products', fetchProducts],
+      category: ['categories', fetchCategories],
+      warranty_claim: ['warranty_claims', fetchWarrantyClaims]
+    };
 
-    if (!error) {
-      if (type === 'enquiry') fetchEnquiries();
-      else if (type === 'contact_submission') fetchContactSubmissions();
-      else if (type === 'staff') fetchStaff();
-      else if (type === 'project') fetchProjects();
-      else if (type === 'product') fetchProducts();
-      else if (type === 'category') fetchCategories();
-      else if (type === 'warranty_claim') fetchWarrantyClaims();
+    const [table, fetchFn] = deleteTargetMap[type] || [];
+    if (table) {
+      const { error } = await supabase.from(table).delete().eq('id', id);
+      if (!error && fetchFn) fetchFn();
     }
     setDeleteModal({ isOpen: false, type: null, id: null, title: '', message: '' });
   };
@@ -250,24 +248,23 @@ export default function AdminDashboard({ onLogout }) {
           </div>
 
           <nav className="space-y-1.5">
-            {navTabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+            {navTabs.map(({ id, label, icon: Icon, count }) => {
+              const isActive = activeTab === id;
               return (
                 <button
-                  key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
+                  key={id}
+                  onClick={() => { setActiveTab(id); setMobileMenuOpen(false); }}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
                     isActive ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-zinc-400 hover:bg-zinc-800/80 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon size={18} className="shrink-0" />
-                    <span className="truncate">{tab.label}</span>
+                    <span className="truncate">{label}</span>
                   </div>
-                  {tab.count !== undefined && tab.count > 0 && (
+                  {count > 0 && (
                     <span className={`px-2 py-0.5 text-[10px] rounded-full font-extrabold ${isActive ? 'bg-white text-red-600' : 'bg-red-600/20 text-red-400 border border-red-500/30'}`}>
-                      {tab.count}
+                      {count}
                     </span>
                   )}
                 </button>
@@ -323,185 +320,34 @@ export default function AdminDashboard({ onLogout }) {
         ) : (
           <div className="max-w-7xl mx-auto">
             {activeTab === 'products' && (
-              <ProductsTab products={products} categories={categories} onOpenModal={() => setIsAddProductOpen(true)} onDeleteProduct={(id, name) => setDeleteModal({ isOpen: true, type: 'product', id, title: 'Delete Product', message: `Are you sure you want to delete product "${name}"?` })} onToggleFeatured={toggleFeaturedStatus} onProductUpdated={fetchProducts} />
+              <ProductsTab products={products} categories={categories} onOpenModal={() => setIsAddProductOpen(true)} onDeleteProduct={(id, name) => openDeleteModal('product', id, 'Delete Product', `Are you sure you want to delete product "${name}"?`)} onToggleFeatured={toggleFeaturedStatus} onProductUpdated={fetchProducts} />
             )}
             {activeTab === 'categories' && (
-              <CategoriesTab categories={categories} onCategoryAdded={fetchCategories} onDeleteCategory={(id, name) => setDeleteModal({ isOpen: true, type: 'category', id, title: 'Delete Category', message: `Are you sure you want to delete category "${name}"?` })} />
+              <CategoriesTab categories={categories} onCategoryAdded={fetchCategories} onDeleteCategory={(id, name) => openDeleteModal('category', id, 'Delete Category', `Are you sure you want to delete category "${name}"?`)} />
             )}
             {activeTab === 'enquiries' && (
               <EnquiriesTab title="Inquiries & Contact Submissions" timeFilter={timeFilter} setTimeFilter={setTimeFilter} filteredEnquiries={filterByTime(combinedInquiries)} onExport={() => exportToExcel(combinedInquiries, 'All_Inquiries')} onDeleteEnquiry={(id, name) => {
-                const target = combinedInquiries.find((item) => item.id === id);
-                const isSub = target?.sourceType === 'contact_submission';
-                setDeleteModal({ isOpen: true, type: isSub ? 'contact_submission' : 'enquiry', id, title: isSub ? 'Delete Submission' : 'Delete Enquiry', message: `Delete entry from ${name || 'user'}?` });
+                const isSub = combinedInquiries.find((item) => item.id === id)?.sourceType === 'contact_submission';
+                openDeleteModal(isSub ? 'contact_submission' : 'enquiry', id, isSub ? 'Delete Submission' : 'Delete Enquiry', `Delete entry from ${name || 'user'}?`);
               }} />
             )}
             
             {/* WARRANTY CLAIMS TAB */}
             {activeTab === 'warranty' && (
-              <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                      <ShieldCheck className="text-red-500" size={24} /> Warranty Claims
-                    </h2>
-                    <p className="text-xs text-zinc-400 mt-1">Manage customer warranty registration, view bills, and process claim approvals.</p>
-                  </div>
-                  <button onClick={() => exportToExcel(warrantyClaims, 'Warranty_Claims')} className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-bold rounded-xl text-zinc-200 transition-all">
-                    <Download size={14} /> Export Claims
-                  </button>
-                </div>
-
-                {warrantyClaims.length === 0 ? (
-                  <div className="p-12 text-center bg-zinc-900/50 border border-zinc-800/80 rounded-2xl text-zinc-500 text-sm">
-                    No warranty claims recorded yet.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4">
-                    {warrantyClaims.map((claim) => {
-                      const billUrl = claim.bill_url || claim.invoice_url || claim.bill_image || claim.file_url;
-                      const dealerName = claim.dealer_name || claim.shop_name || claim.dealer || 'N/A';
-                      
-                      // Match against fetched products array using product_id foreign key
-                      const matchedProduct = products.find((p) => String(p.id) === String(claim.product_id));
-
-                      const productName = 
-                        matchedProduct?.title || 
-                        matchedProduct?.name || 
-                        claim.products?.title || 
-                        claim.products?.name || 
-                        claim.product_name || 
-                        claim.product || 
-                        claim.product_title || 
-                        claim.item_name || 
-                        claim.product_details?.name || 
-                        'N/A';
-
-                      const modelNo = claim.model_no || claim.model || claim.serial_number;
-
-                      return (
-                        <div key={claim.id} className="p-5 bg-zinc-900 border border-zinc-800/80 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-5 transition-all hover:border-zinc-700/80">
-                          
-                          {/* Claim Details */}
-                          <div className="space-y-2.5 flex-1">
-                            <div className="flex flex-wrap items-center gap-3">
-                              <span className="font-extrabold text-white text-base">{claim.full_name || claim.name || 'Anonymous Customer'}</span>
-                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${
-                                claim.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                                claim.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                                'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              }`}>
-                                {claim.status || 'PENDING'}
-                              </span>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1.5 text-xs text-zinc-400">
-                              <p className="flex items-center gap-1.5">
-                                <Phone size={13} className="text-zinc-500 shrink-0" />
-                                <span>Phone:</span> 
-                                <span className="text-zinc-200 font-semibold">{claim.phone || claim.mobile || 'N/A'}</span>
-                              </p>
-
-                              <p className="flex items-center gap-1.5">
-                                <Store size={13} className="text-zinc-500 shrink-0" />
-                                <span>Shop / Dealer:</span> 
-                                <span className="text-zinc-200 font-semibold">{dealerName}</span>
-                              </p>
-
-                              <p className="flex items-center gap-1.5">
-                                <PackagePlus size={13} className="text-zinc-500 shrink-0" />
-                                <span>Product / Model:</span> 
-                                <span className="text-zinc-200 font-semibold">{productName} {modelNo ? `(${modelNo})` : ''}</span>
-                              </p>
-                            </div>
-
-                            {/* Attached Bill Button */}
-                            {billUrl ? (
-                              <div className="pt-1">
-                                <a 
-                                  href={billUrl} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700/80 text-red-400 hover:text-red-300 border border-zinc-700/60 rounded-xl text-xs font-bold transition-all"
-                                >
-                                  <FileText size={14} />
-                                  <span>View Attached Bill / Invoice</span>
-                                  <ExternalLink size={12} className="ml-0.5 opacity-70" />
-                                </a>
-                              </div>
-                            ) : (
-                              <p className="text-[11px] text-zinc-500 italic">No bill/invoice attached</p>
-                            )}
-
-                            {claim.issue_description && (
-                              <p className="text-xs text-zinc-300 bg-zinc-950/60 p-3 rounded-xl border border-zinc-800/50">
-                                "{claim.issue_description}"
-                              </p>
-                            )}
-
-                            <p className="text-[10px] text-zinc-500">
-                              Submitted: {claim.created_at ? new Date(claim.created_at).toLocaleString() : 'N/A'}
-                            </p>
-
-                            {/* Debug helper: Shows actual fields returned by Supabase if productName still defaults to N/A */}
-                            {productName === 'N/A' && (
-                              <details className="mt-2 text-[10px] text-zinc-500 bg-zinc-950 p-2 rounded border border-zinc-800">
-                                <summary className="cursor-pointer text-amber-500 font-mono">Debug raw claim fields</summary>
-                                <pre className="mt-1 overflow-x-auto text-[9px] text-zinc-400">
-                                  {JSON.stringify(claim, null, 2)}
-                                </pre>
-                              </details>
-                            )}
-                          </div>
-
-                          {/* Quick Actions */}
-                          <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t border-zinc-800/60 lg:border-t-0">
-                            {/* Call Back Button */}
-                            {claim.phone && (
-                              <a 
-                                href={`tel:${claim.phone}`}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-blue-600/10 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white text-xs font-bold rounded-xl transition-all"
-                              >
-                                <Phone size={14} /> Call Back
-                              </a>
-                            )}
-
-                            {/* Approve Button */}
-                            <button 
-                              onClick={() => handleUpdateClaimStatus(claim.id, 'APPROVED')} 
-                              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-600 hover:text-white text-xs font-bold rounded-xl transition-all"
-                            >
-                              <Check size={14} /> Approve
-                            </button>
-
-                            {/* Reject Button */}
-                            <button 
-                              onClick={() => handleUpdateClaimStatus(claim.id, 'REJECTED')} 
-                              className="flex items-center gap-1.5 px-3 py-2 bg-amber-600/10 border border-amber-500/30 text-amber-400 hover:bg-amber-600 hover:text-white text-xs font-bold rounded-xl transition-all"
-                            >
-                              <XCircle size={14} /> Reject
-                            </button>
-
-                            {/* Delete Button trigger Modal */}
-                            <button 
-                              onClick={() => setDeleteModal({ 
-                                isOpen: true, 
-                                type: 'warranty_claim', 
-                                id: claim.id, 
-                                title: 'Delete Warranty Claim', 
-                                message: `Are you sure you want to permanently delete the warranty claim for "${claim.full_name || claim.name || 'this customer'}"?` 
-                              })} 
-                              className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-colors"
-                              title="Delete Warranty Claim"
-                            >
-                              <X size={18} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              <WarrantyTab 
+                warrantyClaims={warrantyClaims}
+                products={products}
+                onUpdateClaimStatus={handleUpdateClaimStatus}
+                onDeleteClaim={(id, name) => 
+                  openDeleteModal(
+                    'warranty_claim', 
+                    id, 
+                    'Delete Warranty Claim', 
+                    `Are you sure you want to delete claim for "${name || 'this customer'}"?`
+                  )
+                }
+                onExport={() => exportToExcel(warrantyClaims, 'Warranty_Claims')}
+              />
             )}
 
             {activeTab === 'calls' && (
@@ -513,10 +359,10 @@ export default function AdminDashboard({ onLogout }) {
               }} onCallsUpdated={fetchCallRequests} />
             )}
             {activeTab === 'staff' && (
-              <StaffTab staffList={staffList} onOpenModal={() => setIsAddStaffOpen(true)} onDeleteStaff={(id, name) => setDeleteModal({ isOpen: true, type: 'staff', id, title: 'Delete Staff', message: `Delete staff member ${name}?` })} />
+              <StaffTab staffList={staffList} onOpenModal={() => setIsAddStaffOpen(true)} onDeleteStaff={(id, name) => openDeleteModal('staff', id, 'Delete Staff', `Delete staff member ${name}?`)} />
             )}
             {activeTab === 'projects' && (
-              <ProjectsTab projects={projects} onOpenModal={() => setIsAddProjectOpen(true)} onToggleStatus={toggleProjectStatus} onDeleteProject={(id, name) => setDeleteModal({ isOpen: true, type: 'project', id, title: 'Delete Project', message: `Delete project "${name}"?` })} />
+              <ProjectsTab projects={projects} onOpenModal={() => setIsAddProjectOpen(true)} onToggleStatus={toggleProjectStatus} onDeleteProject={(id, name) => openDeleteModal('project', id, 'Delete Project', `Delete project "${name}"?`)} />
             )}
           </div>
         )}
