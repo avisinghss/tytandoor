@@ -6,24 +6,24 @@ import Header from "./components/layout/Header";
 import AppRoutes from "./routes/AppRoutes";
 
 // Helper component inside App to check current path
-function MainContent() {
-  const location = useLocation();
+// function MainContent() {
+//   const location = useLocation();
   
-  // Check if current route is an Admin route
-  const isAdminRoute = location.pathname.startsWith("/admin");
+//   // Check if current route is an Admin route
+//   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  return (
-    <>
-      {/* Show Header ONLY if NOT on admin routes */}
-      {!isAdminRoute && <Header />}
+//   return (
+//     <>
+//       {/* Show Header ONLY if NOT on admin routes */}
+//       {!isAdminRoute && <Header />}
 
-      {/* Remove pt-20 padding when on Admin panel */}
-      <main className={isAdminRoute ? "" : "pt-20"}>
-        <AppRoutes />
-      </main>
-    </>
-  );
-}
+//       {/* Remove pt-20 padding when on Admin panel */}
+//       <main className={isAdminRoute ? "" : "pt-20"}>
+//         <AppRoutes />
+//       </main>
+//     </>
+//   );
+// }
 
 function App() {
   return (
@@ -37,7 +37,8 @@ function App() {
           `,
         }}
       >
-        <MainContent />
+        {/* <MainContent /> */}
+        <AppRoutes />
       </div>
     </Router>
   );
