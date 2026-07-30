@@ -19,8 +19,8 @@ self.addEventListener('push', (event) => {
     const title = data.title || 'New Notification';
     const options = {
       body: data.body || 'You have a new update.',
-      icon: data.icon || '/icon-192x192.png', // Apne app icon ka path yahan check kar lein
-      badge: data.badge || '/icon-192x192.png',
+      icon: data.icon || '/pwa-192x192.png',
+      badge: data.badge || '/pwa-192x192.png',
       data: {
         targetTab: data.targetTab || 'enquiries',
         url: data.url || '/admin',

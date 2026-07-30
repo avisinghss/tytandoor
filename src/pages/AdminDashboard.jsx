@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 import * as XLSX from 'xlsx';
 import { 
-  Phone, Users, FolderKanban, LogOut, Menu, X, PackagePlus, Layers, ShoppingBag, Download, Bell, BellRing, ShieldCheck 
+  Phone, Users, FolderKanban, LogOut, Menu, X, PackagePlus, Layers, 
+  ShoppingBag, Download, Bell, BellRing, ShieldCheck, TrendingUp 
 } from 'lucide-react';
 
 import EnquiriesTab from '../components/admin/EnquiriesTab';
@@ -13,6 +14,7 @@ import ProjectsTab from '../components/admin/ProjectsTab';
 import ProductsTab from '../components/admin/ProductsTab';
 import CategoriesTab from '../components/admin/CategoriesTab';
 import WarrantyTab from '../components/admin/WarrantyTab';
+import AnalyticsTab from '../components/admin/AnalyticsTab'; // <-- 1. IMPORT ANALYTICS TAB
 import NotificationCenter from '../components/admin/NotificationCenter';
 import DashboardModals from '../components/admin/DashboardModals';
 import { useAdminData } from '../hooks/useAdminData';
@@ -24,8 +26,11 @@ const urlBase64ToUint8Array = (base64) => {
 };
 
 export default function AdminDashboard({ onLogout }) {
-  const [activeTab, setActiveTab] = useState('products');
+  const [activeTab, setActiveTab] = useState('analytics'); // Default set to analytics (Optional)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Analytics Visitor Visits State
+  const [visits, setVisits] = useState([]); // <-- 2. VISITS STATE
 
   // Notification & PWA State
   const [notiPermission, setNotiPermission] = useState('default');
@@ -48,65 +53,66 @@ export default function AdminDashboard({ onLogout }) {
     new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(() => {});
   };
 
- const triggerNotification = useCallback(async (categoryName, bodyMessage, targetTab = 'enquiries') => {
-  // 1. Play Sound
-  playNotificationSound();
+  const triggerNotification = useCallback(async (categoryName, bodyMessage, targetTab = 'enquiries') => {
+    playNotificationSound();
+    const title = `🚨 New ${categoryName}!`;
+    const formattedBody = `Dear Sir, ${bodyMessage}`;
 
-  const title = `🚨 New ${categoryName}!`;
-  const formattedBody = `Dear Sir, ${bodyMessage}`;
-
-  // 2. Update UI Dropdown State
-  setNotifications((prev) => [
-    {
-      id: Date.now(),
-      title,
-      body: formattedBody,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      read: false,
-      targetTab
-    }, 
-    ...prev
-  ]);
-
-  // 3. Trigger Native OS Popup
-  if ('Notification' in window && Notification.permission === 'granted') {
-    try {
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.ready;
-        if (reg && reg.showNotification) {
-          await reg.showNotification(title, {
-            body: formattedBody,
-            icon: '/pwa-192x192.png',
-            badge: '/pwa-192x192.png',
-            vibrate: [200, 100, 200],
-            tag: `tytan-${Date.now()}`,
-            data: { targetTab }
-          });
-          return;
-        }
-      }
-
-      // Fallback popup if SW isn't ready
-      const noti = new Notification(title, {
+    setNotifications((prev) => [
+      {
+        id: Date.now(),
+        title,
         body: formattedBody,
-        icon: '/pwa-192x192.png'
-      });
-      noti.onclick = () => {
-        window.focus();
-        setActiveTab(targetTab);
-      };
-    } catch (err) {
-      console.error('Error showing direct notification:', err);
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        read: false,
+        targetTab
+      }, 
+      ...prev
+    ]);
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && reg.showNotification) {
+            await reg.showNotification(title, {
+              body: formattedBody,
+              icon: '/pwa-192x192.png',
+              badge: '/pwa-192x192.png',
+              vibrate: [200, 100, 200],
+              tag: `tytan-${Date.now()}`,
+              data: { targetTab }
+            });
+            return;
+          }
+        }
+
+        const noti = new Notification(title, { body: formattedBody, icon: '/pwa-192x192.png' });
+        noti.onclick = () => { window.focus(); setActiveTab(targetTab); };
+      } catch (err) {
+        console.error('Error showing direct notification:', err);
+      }
     }
-  }
-}, []);
+  }, []);
 
   const {
     isLoading, callRequests, staffList, projects, products, categories, combinedInquiries, warrantyClaims,
     setProducts, setWarrantyClaims, fetchEnquiries, fetchContactSubmissions, fetchCallRequests, fetchStaff, fetchProjects, fetchProducts, fetchCategories, fetchWarrantyClaims
   } = useAdminData(triggerNotification);
 
+  // <-- 3. FETCH PAGE VISITS FROM SUPABASE
+  const fetchVisits = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.from('page_visits').select('*').order('created_at', { ascending: false });
+      if (!error && data) setVisits(data);
+    } catch (err) {
+      console.error('Error fetching visits:', err);
+    }
+  }, []);
+
   useEffect(() => {
+    fetchVisits(); // Initial Fetch Analytics Visits
+
     let manifestLink = document.querySelector('link[rel="manifest"]') || document.createElement('link');
     manifestLink.rel = 'manifest';
     manifestLink.href = '/manifest.json';
@@ -130,7 +136,7 @@ export default function AdminDashboard({ onLogout }) {
       if ('serviceWorker' in navigator) navigator.serviceWorker.removeEventListener('message', handleSWMessage);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+  }, [fetchVisits]);
 
   const requestNotificationPermission = async () => {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return alert('Push notifications not supported.');
@@ -139,11 +145,18 @@ export default function AdminDashboard({ onLogout }) {
     if (permission === 'granted') {
       try {
         const reg = await navigator.serviceWorker.ready;
+        const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        if (!vapidPublicKey) throw new Error('Missing VAPID public key.');
+
         const subscription = await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array('BLY_DF7rxRws6WU_RwoDuSjXC4ko4-Mrx1S3mwxivxZIpawK2PWJBS15Nj1uuhFp1C6nacWPrOfEvpwCdtT4bAs')
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
         });
-        await supabase.from('push_subscriptions').upsert([{ subscription: subscription.toJSON() }]);
+        const { error: subscriptionError } = await supabase.from('push_subscriptions').upsert(
+          [{ endpoint: subscription.endpoint, subscription: subscription.toJSON() }],
+          { onConflict: 'endpoint' },
+        );
+        if (subscriptionError) throw subscriptionError;
         triggerNotification('Inquiries', 'Background alerts enabled successfully!');
       } catch (err) {
         console.error('Error setting up Web Push:', err);
@@ -188,20 +201,17 @@ export default function AdminDashboard({ onLogout }) {
     if (!error) fetchProjects();
   };
 
-  // FIXED: Instant UI Update + Supabase Sync
   const handleUpdateClaimStatus = async (id, status = 'APPROVED') => {
     const nextStatus = String(status).toUpperCase();
     
-    // 1. Immediately update UI state
     setWarrantyClaims((prev) => 
       prev.map((item) => (item.id === id ? { ...item, status: nextStatus } : item))
     );
 
-    // 2. Sync to Supabase
     const { error } = await supabase.from('warranty_claims').update({ status: nextStatus }).eq('id', id);
     if (error) {
       console.error("Failed to update status in Database:", error);
-      fetchWarrantyClaims(); // Revert state if DB update fails
+      fetchWarrantyClaims();
     }
   };
 
@@ -225,7 +235,9 @@ export default function AdminDashboard({ onLogout }) {
     setDeleteModal({ isOpen: false, type: null, id: null, title: '', message: '' });
   };
 
+  // <-- 4. ADDED ANALYTICS TAB IN NAV ITEMS
   const navTabs = [
+    { id: 'analytics', label: 'Analytics Insights', icon: TrendingUp },
     { id: 'products', label: 'Products', icon: PackagePlus },
     { id: 'categories', label: 'Categories', icon: Layers },
     { id: 'enquiries', label: 'Inquiries & Forms', icon: ShoppingBag, count: combinedInquiries.length },
@@ -349,6 +361,15 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         ) : (
           <div className="max-w-7xl mx-auto">
+            {/* <-- 5. RENDER ANALYTICS TAB */}
+            {activeTab === 'analytics' && (
+              <AnalyticsTab 
+                visits={visits} 
+                enquiries={combinedInquiries} 
+                callRequests={callRequests} 
+              />
+            )}
+
             {activeTab === 'products' && (
               <ProductsTab products={products} categories={categories} onOpenModal={() => setIsAddProductOpen(true)} onDeleteProduct={(id, name) => openDeleteModal('product', id, 'Delete Product', `Are you sure you want to delete product "${name}"?`)} onToggleFeatured={toggleFeaturedStatus} onProductUpdated={fetchProducts} />
             )}
@@ -362,7 +383,6 @@ export default function AdminDashboard({ onLogout }) {
               }} />
             )}
             
-            {/* WARRANTY CLAIMS TAB */}
             {activeTab === 'warranty' && (
               <WarrantyTab 
                 warrantyClaims={warrantyClaims}

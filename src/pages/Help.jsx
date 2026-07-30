@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
+import { notifyAdmins } from '../services/notificationService';
 import { getCategories, getProducts } from '../services/productService';
 import { 
   Upload, 
@@ -200,6 +201,12 @@ export default function Help() {
 
       if (insertError) throw insertError;
 
+      void notifyAdmins({
+        title: 'New warranty claim',
+        body: `${warrantyData.fullName || 'A customer'} submitted a warranty claim.`,
+        targetTab: 'warranty',
+      });
+
       setWarrantyProgress(100);
       setTimeout(() => {
         setIsSubmittingWarranty(false);
@@ -243,6 +250,12 @@ export default function Help() {
       ]);
 
       if (error) throw error;
+
+      void notifyAdmins({
+        title: 'New callback request',
+        body: `${expertData.name} requested a call from the help page.`,
+        targetTab: 'calls',
+      });
 
       // Step 3: Complete Progress
       setExpertProgress(90);

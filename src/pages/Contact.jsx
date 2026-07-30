@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
+import { notifyAdmins } from '../services/notificationService';
 import { 
   Phone, Mail, Clock, Send, Building2, Factory, 
   CheckCircle2, MessageSquare, ChevronDown, FileText, 
@@ -125,6 +126,12 @@ export default function Contact() {
       ]);
 
       if (error) throw error;
+
+      void notifyAdmins({
+        title: 'New contact submission',
+        body: `${formData.name || 'A customer'} sent a contact request.`,
+        targetTab: 'enquiries',
+      });
 
       setSubmitted(true);
       setFormData({

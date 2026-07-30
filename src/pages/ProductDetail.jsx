@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProducts } from '../services/productService'; // Live Supabase Service
 import { supabase } from '../services/supabaseClient';
+import { notifyAdmins } from '../services/notificationService';
 import ProductFeatures from '../components/home/ProductFeatures';
 import { CheckCircle2, Loader2, PhoneCall, Send, User, Phone, X, ShieldCheck } from 'lucide-react';
 
@@ -67,6 +68,12 @@ function ProductDetail() {
 
       if (error) throw error;
 
+      void notifyAdmins({
+        title: 'New product enquiry',
+        body: `${inquiryData.name} enquired about ${product?.name || 'a product'}.`,
+        targetTab: 'enquiries',
+      });
+
       setInquirySubmitted(true);
       setInquiryData({ name: '', phone: '' });
     } catch (err) {
@@ -98,6 +105,12 @@ function ProductDetail() {
       ]);
 
       if (error) throw error;
+
+      void notifyAdmins({
+        title: 'New callback request',
+        body: `${expertData.name} requested a call about ${product?.name || 'a product'}.`,
+        targetTab: 'calls',
+      });
 
       // Step 2: Animated progress loading sequence
       setExpertProgress(45);

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle, AlertCircle, ChevronDown, Check } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { supabase } from '../../services/supabaseClient';
+import { notifyAdmins } from '../../services/notificationService';
 
 const INITIAL_STATE = {
   name: '',
@@ -165,6 +166,12 @@ export default function EnquiryModal({ isOpen, onClose }) {
       ]);
 
       if (error) throw error;
+
+      void notifyAdmins({
+        title: 'New product enquiry',
+        body: `${formData.name.trim() || 'A customer'} submitted an enquiry.`,
+        targetTab: 'enquiries',
+      });
 
       setIsSuccess(true);
 
