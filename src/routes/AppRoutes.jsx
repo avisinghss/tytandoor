@@ -8,6 +8,7 @@ import Contact from "../pages/Contact";
 import Terms from "../pages/Terms";
 import Help from "../pages/Help";
 import Admin from "../pages/Admin";
+import FunPrank from "../pages/Fun";
 
 export default function AppRoutes() {
   return (
@@ -18,9 +19,10 @@ export default function AppRoutes() {
       {/* Dynamic single product page */}
       <Route path="/products/:slug" element={<ProductDetail />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/admintytandoor" element={<FunPrank />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/help" element={<Help />} /> 
-      <Route path="/admintytandoor" element={<Admin />} />
+      {/* <Route path="/admintytandoor" element={<Admin />} /> */}
 
     </Routes>
   );
