@@ -8,6 +8,14 @@ export function usePageTracker() {
 
   useEffect(() => {
     const trackVisit = async () => {
+      // Admin activity and a refresh of an already-viewed page should not be
+      // counted as customer traffic.
+      if (location.pathname.startsWith('/admintytandoor')) return;
+
+      const viewedPagesKey = 'tytan_viewed_pages_this_session';
+      const viewedPages = new Set(JSON.parse(sessionStorage.getItem(viewedPagesKey) || '[]'));
+      if (viewedPages.has(location.pathname)) return;
+
       // Create or fetch persistent unique Visitor ID
       let visitorId = localStorage.getItem('tytan_visitor_id');
       if (!visitorId) {
@@ -22,6 +30,10 @@ export function usePageTracker() {
       }]);
 
       if (error) console.error('Could not record page visit:', error);
+      else {
+        viewedPages.add(location.pathname);
+        sessionStorage.setItem(viewedPagesKey, JSON.stringify([...viewedPages]));
+      }
     };
 
     trackVisit();
