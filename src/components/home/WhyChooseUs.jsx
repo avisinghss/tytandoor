@@ -42,11 +42,28 @@ const features = [
 ];
 
 export default function WhyChooseUs() {
-  // Duplicate array for seamless infinite loop on mobile
   const duplicatedFeatures = [...features, ...features];
 
   return (
     <section className="bg-[#F8F7F4] dark:bg-zinc-950 py-12 md:py-24 overflow-hidden transition-colors duration-500">
+      {/* Inline styles for the pure CSS marquee animation */}
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          display: flex;
+          width: max-content;
+          animation: marquee 18s linear infinite;
+        }
+        /* Pauses animation instantly when hovering, holding, or touching on mobile */
+        .marquee-container:hover .animate-marquee,
+        .marquee-container:active .animate-marquee {
+          animation-play-state: paused;
+        }
+      `}</style>
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
 
         {/* Heading Section */}
@@ -74,24 +91,14 @@ export default function WhyChooseUs() {
         </motion.div>
 
         {/* --- MOBILE: Continuous Auto-Looping Scroll --- */}
-        <div className="block sm:hidden w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_64px,_black_calc(100%-64px),transparent_100%)]">
-          <motion.div
-            className="flex w-max gap-3 py-2"
-            animate={{
-              x: ["0%", "-50%"],
-            }}
-            transition={{
-              ease: "linear",
-              duration: 18,
-              repeat: Infinity,
-            }}
-          >
+        <div className="block sm:hidden w-full overflow-hidden marquee-container [mask-image:_linear-gradient(to_right,transparent_0,_black_64px,_black_calc(100%-64px),transparent_100%)]">
+          <div className="animate-marquee gap-3 py-2 select-none">
             {duplicatedFeatures.map((item, index) => {
               const Icon = item.icon;
               return (
                 <div
                   key={index}
-                  className="w-[210px] shrink-0 flex flex-col items-center text-center rounded-xl bg-white dark:bg-zinc-900 p-4 shadow-xs border border-gray-200/80 dark:border-zinc-800 transition-colors"
+                  className="w-[210px] shrink-0 flex flex-col items-center text-center rounded-xl bg-white dark:bg-zinc-900 p-4 shadow-xs border border-gray-200/80 dark:border-zinc-800 transition-colors mr-3"
                 >
                   <div className="mb-2.5 flex h-11 w-11 items-center justify-center rounded-full border border-[#b31919] dark:border-red-500 bg-red-50/50 dark:bg-red-950/30 text-[#b31919] dark:text-red-500 shrink-0">
                     <Icon className="w-5 h-5" strokeWidth={1.75} />
@@ -107,7 +114,7 @@ export default function WhyChooseUs() {
                 </div>
               );
             })}
-          </motion.div>
+          </div>
         </div>
 
         {/* --- DESKTOP / TABLET: Grid View --- */}
