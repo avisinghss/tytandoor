@@ -1,5 +1,5 @@
 import React from 'react';
-// Works for both export default and named export
+import { Link } from 'react-router-dom';
 import BrandPillars from '../components/home/BrandPillars'; 
 
 export default function About() {
@@ -107,13 +107,25 @@ export default function About() {
         <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 max-w-xl mx-auto">
           Explore our complete product range or get in touch with our technical sales team for custom project quotes.
         </p>
+        
+        {/* --- ACTION BUTTONS WITH ROUTING & DOWNLOAD --- */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-2">
-          <button className="w-full sm:w-auto px-6 py-3 bg-[#b31919] hover:bg-red-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm cursor-pointer">
+          {/* Direct File Download Anchor */}
+          <a 
+            href="/catlog/catlog-tyatan-door.pdf" 
+            download="Tytan_Door_Catalog.pdf"
+            className="w-full sm:w-auto px-6 py-3 bg-[#b31919] hover:bg-red-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm cursor-pointer text-center inline-block"
+          >
             Download Catalog
-          </button>
-          <button className="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-semibold rounded-xl text-sm transition-colors cursor-pointer">
+          </a>
+
+          {/* Router Link Navigation */}
+          <Link 
+            to="/contact"
+            className="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-semibold rounded-xl text-sm transition-colors cursor-pointer text-center inline-block"
+          >
             Contact Us
-          </button>
+          </Link>
         </div>
       </section>
     </div>
