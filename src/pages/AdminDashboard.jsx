@@ -102,19 +102,43 @@ export default function AdminDashboard({ onLogout }) {
       .order('created_at', { ascending: false })
       .limit(100);
 
-    if (error) {
-      console.error('Could not load saved notifications:', error);
-      return;
-    }
-
-    setNotifications((data || []).map((item) => ({
+    if (!error && data?.length) {
+      setNotifications(data.map((item) => ({
       id: item.id,
       title: item.title,
       body: item.body,
       time: new Date(item.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }),
       read: item.is_read,
       targetTab: item.target_tab || 'enquiries',
-    })));
+      })));
+      return;
+    }
+
+    // Existing form records are a reliable fallback until the optional
+    // admin_notifications table has been created in Supabase.
+    if (error) console.warn('Saved notification table is unavailable; using form records instead.', error.message);
+    const [enquiries, contacts, calls, warranties] = await Promise.all([
+      supabase.from('enquiries').select('id, name, created_at').order('created_at', { ascending: false }).limit(50),
+      supabase.from('contact_submissions').select('id, name, created_at').order('created_at', { ascending: false }).limit(50),
+      supabase.from('call_requests').select('id, name, phone, created_at').order('created_at', { ascending: false }).limit(50),
+      supabase.from('warranty_claims').select('id, full_name, created_at').order('created_at', { ascending: false }).limit(50),
+    ]);
+
+    const fallbackNotifications = [
+      ...(enquiries.data || []).map((item) => ({ id: `enquiry-${item.id}`, title: 'New product enquiry', body: `${item.name || 'A customer'} submitted an enquiry.`, created_at: item.created_at, targetTab: 'enquiries' })),
+      ...(contacts.data || []).map((item) => ({ id: `contact-${item.id}`, title: 'New contact submission', body: `${item.name || 'A customer'} sent a contact request.`, created_at: item.created_at, targetTab: 'enquiries' })),
+      ...(calls.data || []).map((item) => ({ id: `call-${item.id}`, title: 'New callback request', body: `${item.name || item.phone || 'A customer'} requested a call.`, created_at: item.created_at, targetTab: 'calls' })),
+      ...(warranties.data || []).map((item) => ({ id: `warranty-${item.id}`, title: 'New warranty claim', body: `${item.full_name || 'A customer'} submitted a warranty claim.`, created_at: item.created_at, targetTab: 'warranty' })),
+    ]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 100)
+      .map((item) => ({
+        ...item,
+        time: new Date(item.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }),
+        read: false,
+      }));
+
+    setNotifications(fallbackNotifications);
   }, []);
 
   const {
@@ -126,7 +150,8 @@ export default function AdminDashboard({ onLogout }) {
   const fetchVisits = useCallback(async () => {
     try {
       const { data, error } = await supabase.from('page_visits').select('*').order('created_at', { ascending: false });
-      if (!error && data) setVisits(data);
+      if (error) console.error('Could not load page visits:', error);
+      else if (data) setVisits(data);
     } catch (err) {
       console.error('Error fetching visits:', err);
     }

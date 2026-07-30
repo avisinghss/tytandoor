@@ -49,6 +49,23 @@ drop policy if exists "Authenticated users can delete admin notifications" on pu
 create policy "Authenticated users can delete admin notifications"
   on public.admin_notifications for delete to authenticated using (true);
 
+create table if not exists public.page_visits (
+  id uuid primary key default gen_random_uuid(),
+  visitor_id text not null,
+  page_path text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.page_visits enable row level security;
+
+drop policy if exists "Public users can record page visits" on public.page_visits;
+create policy "Public users can record page visits"
+  on public.page_visits for insert to anon, authenticated with check (true);
+
+drop policy if exists "Authenticated users can read page visits" on public.page_visits;
+create policy "Authenticated users can read page visits"
+  on public.page_visits for select to authenticated using (true);
+
 -- The dashboard relies on these table events for its in-app/browser alert while
 -- it is open. This block safely skips tables already in the publication.
 do $$

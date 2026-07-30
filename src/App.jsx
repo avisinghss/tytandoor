@@ -4,10 +4,12 @@ import React from "react";
 import { BrowserRouter as Router, useLocation } from "react-router-dom";
 import Header from "./components/layout/Header";
 import AppRoutes from "./routes/AppRoutes";
+import { usePageTracker } from "./hooks/usePageTracker";
 
 // Helper component inside App to check current path
 function MainContent() {
   const location = useLocation();
+  usePageTracker();
   
   // Check if current route is an Admin route
   const isAdminRoute = location.pathname.startsWith("/admin");

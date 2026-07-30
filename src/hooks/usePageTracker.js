@@ -1,8 +1,11 @@
 // src/hooks/usePageTracker.js
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 
 export function usePageTracker() {
+  const location = useLocation();
+
   useEffect(() => {
     const trackVisit = async () => {
       // Create or fetch persistent unique Visitor ID
@@ -13,12 +16,14 @@ export function usePageTracker() {
       }
 
       // Record visit once per session/mount
-      await supabase.from('page_visits').insert([{
-        page_path: window.location.pathname,
+      const { error } = await supabase.from('page_visits').insert([{
+        page_path: location.pathname,
         visitor_id: visitorId
       }]);
+
+      if (error) console.error('Could not record page visit:', error);
     };
 
     trackVisit();
-  }, []);
+  }, [location.pathname]);
 }
