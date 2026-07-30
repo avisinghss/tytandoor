@@ -8,7 +8,7 @@ export default function Terms() {
         {/* Document Header */}
         <div className="border-b border-zinc-200 dark:border-zinc-800 pb-6">
           <span className="text-[#b31919] dark:text-red-500 font-bold text-xs uppercase tracking-wider block mb-1">
-            Anil Interior Brand
+            Anil Interio Brand
           </span>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
             Terms & Conditions
@@ -23,7 +23,7 @@ export default function Terms() {
         {/* Introduction / Preamble */}
         <div className="space-y-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
           <p>
-            Welcome to the official website of <strong>Tytan Door</strong>, an enterprise operating under <strong>Anil Interior</strong> (located in Ballia, Uttar Pradesh). This document pertains to the Terms, Conditions, and Privacy Policy of <a href="https://tytandoor.com" className="text-[#b31919] underline">tytandoor.com</a>.
+            Welcome to the official website of <strong>Tytan Door</strong>, an enterprise operating under <strong>Anil Interio</strong> (located in Ballia, Uttar Pradesh). This document pertains to the Terms, Conditions, and Privacy Policy of <a href="https://tytandoor.com" className="text-[#b31919] underline">tytandoor.com</a>.
           </p>
           <p>
             We value your trust and are committed to maintaining the privacy and security of your information. By accessing, browsing, or placing inquiries on our website, you agree to be legally bound by and comply with these terms. If you do not agree to these terms, you are not authorized to use this site.
@@ -100,7 +100,7 @@ export default function Terms() {
         <section className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
           <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">8. Copyright & Intellectual Property</h2>
           <p>
-            All media, product images, brand marks, and technical specs displayed on <a href="https://tytandoor.com" className="text-[#b31919] underline">tytandoor.com</a> are owned by <strong>Tytan Door / Anil Interior</strong>. Unauthorized downloading, replication, or distribution of graphics or text without explicit written consent is strictly prohibited.
+            All media, product images, brand marks, and technical specs displayed on <a href="https://tytandoor.com" className="text-[#b31919] underline">tytandoor.com</a> are owned by <strong>Tytan Door / Anil Interio</strong>. Unauthorized downloading, replication, or distribution of graphics or text without explicit written consent is strictly prohibited.
           </p>
         </section>
 
@@ -108,7 +108,7 @@ export default function Terms() {
         <section className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
           <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">9. Trademarks</h2>
           <p>
-            "Tytan Door", "Anil Interior", and their associated brand logos are proprietary trademarks. Any unauthorized usage that creates confusion regarding endorsement or origin is subject to legal remedies under applicable Indian trade laws.
+            "Tytan Door", "Anil Interio", and their associated brand logos are proprietary trademarks. Any unauthorized usage that creates confusion regarding endorsement or origin is subject to legal remedies under applicable Indian trade laws.
           </p>
         </section>
 
@@ -124,7 +124,7 @@ export default function Terms() {
         <section className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
           <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">11. Disclaimers & Limitation of Liability</h2>
           <p className="uppercase text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-            Tytan Door / Anil Interior does not warrant that site functions will be entirely uninterrupted or error-free. We shall not be liable for indirect or consequential damages resulting from site access or reliance on digital specifications without prior technical consultation.
+            Tytan Door / Anil Interio does not warrant that site functions will be entirely uninterrupted or error-free. We shall not be liable for indirect or consequential damages resulting from site access or reliance on digital specifications without prior technical consultation.
           </p>
         </section>
 
@@ -132,7 +132,7 @@ export default function Terms() {
         <section className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
           <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">12. Governing Law & Jurisdiction</h2>
           <p>
-            This agreement, site usage, and any legal disputes arising out of services rendered by <strong>Tytan Door (Anil Interior)</strong> shall be governed exclusively by the laws of India, subject to the jurisdiction of courts located in <strong>Ballia, Uttar Pradesh, India</strong>.
+            This agreement, site usage, and any legal disputes arising out of services rendered by <strong>Tytan Door (Anil Interio)</strong> shall be governed exclusively by the laws of India, subject to the jurisdiction of courts located in <strong>Ballia, Uttar Pradesh, India</strong>.
           </p>
         </section>
 
@@ -140,7 +140,7 @@ export default function Terms() {
         <div className="mt-8 p-4 sm:p-6 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Questions regarding these terms?</h3>
-            <p className="text-xs text-zinc-500">Contact Anil Interior / Tytan Door Support</p>
+            <p className="text-xs text-zinc-500">Contact Anil Interio / Tytan Door Support</p>
           </div>
           <a
             href="mailto:info@tytandoor.com"
