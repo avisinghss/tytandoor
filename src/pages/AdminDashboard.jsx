@@ -48,28 +48,58 @@ export default function AdminDashboard({ onLogout }) {
     new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(() => {});
   };
 
-  const triggerNotification = useCallback(async (categoryName, bodyMessage, targetTab = 'enquiries') => {
-    playNotificationSound();
-    const title = `🚨 New ${categoryName}!`;
-    const formattedBody = `Dear Sir, ${bodyMessage}`;
+ const triggerNotification = useCallback(async (categoryName, bodyMessage, targetTab = 'enquiries') => {
+  // 1. Play Sound
+  playNotificationSound();
 
-    setNotifications((prev) => [
-      { id: Date.now(), title, body: formattedBody, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), read: false, targetTab }, 
-      ...prev
-    ]);
+  const title = `🚨 New ${categoryName}!`;
+  const formattedBody = `Dear Sir, ${bodyMessage}`;
 
-    if ('Notification' in window && Notification.permission === 'granted') {
+  // 2. Update UI Dropdown State
+  setNotifications((prev) => [
+    {
+      id: Date.now(),
+      title,
+      body: formattedBody,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      read: false,
+      targetTab
+    }, 
+    ...prev
+  ]);
+
+  // 3. Trigger Native OS Popup
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
       if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration) {
-          registration.showNotification(title, { body: formattedBody, icon: '/pwa-192x192.png', badge: '/pwa-192x192.png', vibrate: [200, 100, 200], data: { targetTab } });
+        const reg = await navigator.serviceWorker.ready;
+        if (reg && reg.showNotification) {
+          await reg.showNotification(title, {
+            body: formattedBody,
+            icon: '/pwa-192x192.png',
+            badge: '/pwa-192x192.png',
+            vibrate: [200, 100, 200],
+            tag: `tytan-${Date.now()}`,
+            data: { targetTab }
+          });
           return;
         }
       }
-      const noti = new Notification(title, { body: formattedBody, icon: '/pwa-192x192.png' });
-      noti.onclick = () => { window.focus(); setActiveTab(targetTab); };
+
+      // Fallback popup if SW isn't ready
+      const noti = new Notification(title, {
+        body: formattedBody,
+        icon: '/pwa-192x192.png'
+      });
+      noti.onclick = () => {
+        window.focus();
+        setActiveTab(targetTab);
+      };
+    } catch (err) {
+      console.error('Error showing direct notification:', err);
     }
-  }, []);
+  }
+}, []);
 
   const {
     isLoading, callRequests, staffList, projects, products, categories, combinedInquiries, warrantyClaims,

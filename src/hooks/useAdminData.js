@@ -89,22 +89,29 @@ export function useAdminData(triggerNotification) {
     const channel = supabase
       .channel('admin-realtime-channel')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'enquiries' }, (payload) => {
+        console.log('Realtime INSERT on enquiries:', payload);
         setEnquiries((prev) => [payload.new, ...prev]);
         triggerNotification('Enquiry', `You got a new enquiry from ${payload.new.name || 'a customer'}.`, 'enquiries');
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'contact_submissions' }, (payload) => {
+        console.log('Realtime INSERT on contact_submissions:', payload);
         setContactSubmissions((prev) => [payload.new, ...prev]);
         triggerNotification('Contact Submission', `You got a new contact form submission from ${payload.new.name || 'a user'}.`, 'enquiries');
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'call_requests' }, (payload) => {
+        console.log('Realtime INSERT on call_requests:', payload);
         setCallRequests((prev) => [payload.new, ...prev]);
         triggerNotification('Call Request', `You got a new call request for ${payload.new.phone || 'a phone number'}.`, 'calls');
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'warranty_claims' }, (payload) => {
+        console.log('Realtime INSERT on warranty_claims:', payload);
         setWarrantyClaims((prev) => [payload.new, ...prev]);
         triggerNotification('Warranty Claim', `New claim request from ${payload.new.full_name || 'a customer'}.`, 'warranty');
       })
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log(`Supabase Realtime status: ${status}`);
+        if (err) console.error('Realtime subscription error:', err);
+      });
 
     return () => {
       supabase.removeChannel(channel);

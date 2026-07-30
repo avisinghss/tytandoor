@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { 
   Phone, Mail, Clock, Send, Building2, Factory, 
@@ -90,6 +91,9 @@ function CustomSelect({
 }
 
 export default function Contact() {
+  // ✅ FIX: Place React Router hook inside top-level of component body
+  const navigate = useNavigate();
+
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -340,7 +344,7 @@ export default function Contact() {
                     <button
                       onClick={() => {
                         setFormData((prev) => ({ ...prev, inquiryType: 'Warranty Claim' }));
-                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                        navigate('/help');
                       }}
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
                     >
