@@ -20,6 +20,35 @@ drop policy if exists "Authenticated users can update push subscriptions" on pub
 create policy "Authenticated users can update push subscriptions"
   on public.push_subscriptions for update to authenticated using (true) with check (true);
 
+create table if not exists public.admin_notifications (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  body text not null,
+  target_tab text not null default 'enquiries',
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.admin_notifications enable row level security;
+
+-- Public forms can create alerts, but only authenticated admin sessions can
+-- view, mark read, or clear the notification centre.
+drop policy if exists "Public users can create admin notifications" on public.admin_notifications;
+create policy "Public users can create admin notifications"
+  on public.admin_notifications for insert to anon, authenticated with check (true);
+
+drop policy if exists "Authenticated users can read admin notifications" on public.admin_notifications;
+create policy "Authenticated users can read admin notifications"
+  on public.admin_notifications for select to authenticated using (true);
+
+drop policy if exists "Authenticated users can update admin notifications" on public.admin_notifications;
+create policy "Authenticated users can update admin notifications"
+  on public.admin_notifications for update to authenticated using (true) with check (true);
+
+drop policy if exists "Authenticated users can delete admin notifications" on public.admin_notifications;
+create policy "Authenticated users can delete admin notifications"
+  on public.admin_notifications for delete to authenticated using (true);
+
 -- The dashboard relies on these table events for its in-app/browser alert while
 -- it is open. This block safely skips tables already in the publication.
 do $$

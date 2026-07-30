@@ -95,6 +95,28 @@ export default function AdminDashboard({ onLogout }) {
     }
   }, []);
 
+  const fetchPersistentNotifications = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('admin_notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error('Could not load saved notifications:', error);
+      return;
+    }
+
+    setNotifications((data || []).map((item) => ({
+      id: item.id,
+      title: item.title,
+      body: item.body,
+      time: new Date(item.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }),
+      read: item.is_read,
+      targetTab: item.target_tab || 'enquiries',
+    })));
+  }, []);
+
   const {
     isLoading, callRequests, staffList, projects, products, categories, combinedInquiries, warrantyClaims,
     setProducts, setWarrantyClaims, fetchEnquiries, fetchContactSubmissions, fetchCallRequests, fetchStaff, fetchProjects, fetchProducts, fetchCategories, fetchWarrantyClaims
@@ -112,6 +134,8 @@ export default function AdminDashboard({ onLogout }) {
 
   useEffect(() => {
     fetchVisits(); // Initial Fetch Analytics Visits
+    fetchPersistentNotifications();
+    const notificationRefreshId = window.setInterval(fetchPersistentNotifications, 15000);
 
     let manifestLink = document.querySelector('link[rel="manifest"]') || document.createElement('link');
     manifestLink.rel = 'manifest';
@@ -135,8 +159,9 @@ export default function AdminDashboard({ onLogout }) {
     return () => {
       if ('serviceWorker' in navigator) navigator.serviceWorker.removeEventListener('message', handleSWMessage);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.clearInterval(notificationRefreshId);
     };
-  }, [fetchVisits]);
+  }, [fetchVisits, fetchPersistentNotifications]);
 
   const requestNotificationPermission = async () => {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return alert('Push notifications not supported.');
@@ -345,10 +370,17 @@ export default function AdminDashboard({ onLogout }) {
         {showNotiDropdown && (
           <NotificationCenter
             notifications={notifications}
-            onMarkAllRead={() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))}
-            onClearAll={() => setNotifications([])}
+            onMarkAllRead={async () => {
+              setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+              await supabase.from('admin_notifications').update({ is_read: true }).eq('is_read', false);
+            }}
+            onClearAll={async () => {
+              setNotifications([]);
+              await supabase.from('admin_notifications').delete().gte('created_at', '1970-01-01T00:00:00.000Z');
+            }}
             onNotificationClick={(noti) => {
               setNotifications((prev) => prev.map((n) => n.id === noti.id ? { ...n, read: true } : n));
+              void supabase.from('admin_notifications').update({ is_read: true }).eq('id', noti.id);
               setActiveTab(noti.targetTab);
               setShowNotiDropdown(false);
             }}

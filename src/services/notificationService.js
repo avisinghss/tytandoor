@@ -5,11 +5,25 @@ import { supabase } from './supabaseClient';
  * A failed notification must never make a customer form submission fail.
  */
 export async function notifyAdmins({ title, body, targetTab }) {
-  const { error } = await supabase.functions.invoke('send-push', {
+  const notification = {
+    title,
+    body,
+    target_tab: targetTab,
+  };
+
+  const { error: storageError } = await supabase
+    .from('admin_notifications')
+    .insert([notification]);
+
+  if (storageError) {
+    console.warn('The form was saved, but the admin notification was not stored.', storageError);
+  }
+
+  const { error: pushError } = await supabase.functions.invoke('send-push', {
     body: { title, body, targetTab },
   });
 
-  if (error) {
-    console.warn('The form was saved, but the admin push notification was not sent.', error);
+  if (pushError) {
+    console.warn('The form was saved, but the admin push notification was not sent.', pushError);
   }
 }
