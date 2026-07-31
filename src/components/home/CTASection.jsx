@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function CTASection() {
+  const navigate = useNavigate();
   return (
     <section className="relative overflow-hidden py-28">
       {/* Background */}
@@ -22,7 +24,7 @@ export default function CTASection() {
             Ready To Build?
           </span>
 
-          <h2 className="mt-6 text-5xl md:text-6xl font-black text-white">
+          <h2 className="mt-6 text-3xl sm:text-5xl md:text-6xl font-black text-white">
             Let's Create
             <br />
             Your Perfect Entrance
@@ -35,7 +37,7 @@ export default function CTASection() {
 
           <div className="mt-12 flex flex-wrap justify-center gap-5">
 
-            <button className="flex items-center gap-3 rounded-full bg-red-700 px-8 py-4 font-semibold text-white transition hover:-translate-y-1 hover:bg-red-800">
+            <button onClick={() => navigate('/products')} className="flex items-center gap-3 rounded-full bg-red-700 px-6 py-3 sm:px-8 sm:py-4 font-semibold text-white transition hover:-translate-y-1 hover:bg-red-800">
 
               Explore Collection
 
@@ -43,13 +45,13 @@ export default function CTASection() {
 
             </button>
 
-            <button className="flex items-center gap-3 rounded-full border border-white/40 px-8 py-4 font-semibold text-white transition hover:bg-white hover:text-black">
+            <a href="tel:+918318886379" className="flex items-center gap-3 rounded-full border border-white/40 px-6 py-3 sm:px-8 sm:py-4 font-semibold text-white transition hover:bg-white hover:text-black">
 
               <Phone size={18} />
 
               Call Now
 
-            </button>
+            </a>
 
           </div>
 
