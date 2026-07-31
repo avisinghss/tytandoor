@@ -5,25 +5,20 @@ import AdminDashboard from './AdminDashboard';
 
 export default function Admin() {
   const [session, setSession] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // 1. Check current Supabase Auth session on mount
-    const checkSession = async (nextSession) => {
-      setSession(nextSession);
-      if (!nextSession) { setIsAdmin(false); setLoading(false); return; }
-      const { data } = await supabase.from('admin_users').select('user_id').eq('user_id', nextSession.user.id).maybeSingle();
-      setIsAdmin(Boolean(data));
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       setLoading(false);
-    };
-    supabase.auth.getSession().then(({ data: { session } }) => checkSession(session));
+    });
 
     // 2. Listen for auth state changes (login, logout, session expiration)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      checkSession(nextSession);
+      setSession(nextSession);
     });
 
     return () => subscription.unsubscribe();
@@ -31,7 +26,7 @@ export default function Admin() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setSession(null); setIsAdmin(false);
+    setSession(null);
   };
 
   if (loading) {
@@ -48,7 +43,7 @@ export default function Admin() {
   // If logged in, show Dashboard; otherwise show Login
   return (
     <>
-      {session && isAdmin ? (
+      {session ? (
         <AdminDashboard onLogout={handleLogout} />
       ) : (
         <AdminLogin onLoginSuccess={(newSession) => setSession(newSession)} />

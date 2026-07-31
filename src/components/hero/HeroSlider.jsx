@@ -7,7 +7,6 @@ import "swiper/css/pagination";
 
 import heroSlides from "../../data/heroSlides";
 import HeroContent from "./HeroContent";
-import ScrollIndicator from "./ScrollIndicator";
 
 export default function HeroSlider() {
   return (
@@ -50,11 +49,6 @@ export default function HeroSlider() {
           </SwiperSlide>
         ))}
       </Swiper>
-
-      {/* Hide ScrollIndicator on mobile screens to prevent UI overlap */}
-      <div className="hidden md:block">
-        <ScrollIndicator />
-      </div>
     </section>
   );
 }
