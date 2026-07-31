@@ -102,8 +102,8 @@ export default function AdminDashboard({ onLogout }) {
       .order('created_at', { ascending: false })
       .limit(100);
 
-    if (!error && data?.length) {
-      setNotifications(data.map((item) => ({
+    if (!error) {
+      setNotifications((data || []).map((item) => ({
       id: item.id,
       title: item.title,
       body: item.body,
@@ -285,6 +285,17 @@ export default function AdminDashboard({ onLogout }) {
     setDeleteModal({ isOpen: false, type: null, id: null, title: '', message: '' });
   };
 
+  const handleToggleEnquiryStatus = async (enquiry) => {
+    const isCompleted = ['DONE', 'COMPLETED', 'RESOLVED', 'CLOSED'].includes(String(enquiry.status || '').toUpperCase());
+    const table = enquiry.sourceType === 'contact_submission' ? 'contact_submissions' : 'enquiries';
+    const { error } = await supabase.from(table).update({ status: isCompleted ? 'NEW' : 'COMPLETED' }).eq('id', enquiry.id);
+    if (error) {
+      console.error('Could not update enquiry status:', error);
+      return;
+    }
+    await Promise.all([fetchEnquiries(), fetchContactSubmissions()]);
+  };
+
   // <-- 4. ADDED ANALYTICS TAB IN NAV ITEMS
   const navTabs = [
     { id: 'analytics', label: 'Analytics Insights', icon: TrendingUp },
@@ -409,6 +420,7 @@ export default function AdminDashboard({ onLogout }) {
               setActiveTab(noti.targetTab);
               setShowNotiDropdown(false);
             }}
+            onClose={() => setShowNotiDropdown(false)}
           />
         )}
 
@@ -437,7 +449,7 @@ export default function AdminDashboard({ onLogout }) {
               <EnquiriesTab title="Inquiries & Contact Submissions" timeFilter={timeFilter} setTimeFilter={setTimeFilter} filteredEnquiries={filterByTime(combinedInquiries)} onExport={() => exportToExcel(combinedInquiries, 'All_Inquiries')} onDeleteEnquiry={(id, name) => {
                 const isSub = combinedInquiries.find((item) => item.id === id)?.sourceType === 'contact_submission';
                 openDeleteModal(isSub ? 'contact_submission' : 'enquiry', id, isSub ? 'Delete Submission' : 'Delete Enquiry', `Delete entry from ${name || 'user'}?`);
-              }} />
+              }} onToggleEnquiryStatus={handleToggleEnquiryStatus} />
             )}
             
             {activeTab === 'warranty' && (

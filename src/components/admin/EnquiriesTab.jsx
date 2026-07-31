@@ -1,5 +1,5 @@
-import React from 'react';
-import { Download, Trash2, Phone, Mail, MapPin, Calendar, MessageSquare, Tag, Package } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, Trash2, Phone, Mail, MapPin, Calendar, MessageSquare, Tag, Package, CheckCircle2, CircleDashed } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 
 export default function EnquiriesTab({ 
@@ -7,8 +7,14 @@ export default function EnquiriesTab({
   setTimeFilter, 
   filteredEnquiries = [], 
   onExport, 
-  onDeleteEnquiry 
+  onDeleteEnquiry,
+  onToggleEnquiryStatus
 }) {
+  const [statusFilter, setStatusFilter] = useState('all');
+  const isCompleted = (enquiry) => ['DONE', 'COMPLETED', 'RESOLVED', 'CLOSED'].includes(String(enquiry.status || '').toUpperCase());
+  const visibleEnquiries = filteredEnquiries.filter((enquiry) => (
+    statusFilter === 'all' || (statusFilter === 'completed' ? isCompleted(enquiry) : !isCompleted(enquiry))
+  ));
 
   // Helper badge styling based on customer / inquiry type
   const getBadgeStyle = (type) => {
@@ -56,7 +62,7 @@ export default function EnquiriesTab({
           <div className="flex items-center gap-2">
             <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">Customer Enquiries</h2>
             <span className="bg-red-500/10 text-[#e11d23] text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-500/20">
-              {filteredEnquiries.length} {filteredEnquiries.length === 1 ? 'Lead' : 'Leads'}
+              {visibleEnquiries.length} {visibleEnquiries.length === 1 ? 'Lead' : 'Leads'}
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">Manage incoming category leads, filter timeframe, or export data.</p>
@@ -74,6 +80,15 @@ export default function EnquiriesTab({
             <option value="week">This Week</option>
             <option value="month">This Month</option>
           </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 rounded-xl px-3 py-2.5 focus:outline-none focus:border-zinc-700 transition cursor-pointer flex-1 sm:flex-none"
+          >
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+          </select>
 
           <button
             onClick={onExport}
@@ -88,7 +103,7 @@ export default function EnquiriesTab({
 
       {/* MOBILE & TABLET CARD VIEW (Visible below 'md' breakpoint) */}
       <div className="grid grid-cols-1 md:hidden gap-4">
-        {filteredEnquiries.map((e) => {
+        {visibleEnquiries.map((e) => {
           const customerType = getCustomerTypeLabel(e);
 
           return (
@@ -106,6 +121,10 @@ export default function EnquiriesTab({
                 <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getBadgeStyle(customerType)} shrink-0`}>
                   <Tag size={10} />
                   {customerType}
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${isCompleted(e) ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-amber-500/20 bg-amber-500/10 text-amber-400'} shrink-0`}>
+                  {isCompleted(e) ? <CheckCircle2 size={10} /> : <CircleDashed size={10} />}
+                  {isCompleted(e) ? 'Completed' : 'Pending'}
                 </span>
               </div>
 
@@ -163,6 +182,14 @@ export default function EnquiriesTab({
                   <span>Call</span>
                 </a>
 
+                <button
+                  onClick={() => onToggleEnquiryStatus?.(e)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition text-xs font-semibold"
+                >
+                  {isCompleted(e) ? <CircleDashed size={13} /> : <CheckCircle2 size={13} />}
+                  <span>{isCompleted(e) ? 'Reopen' : 'Complete'}</span>
+                </button>
+
                 {/* WhatsApp */}
                 <a
                   href={`https://wa.me/${e.phone?.replace(/[^0-9]/g, '')}`}
@@ -189,7 +216,7 @@ export default function EnquiriesTab({
         })}
 
         {/* Empty State Mobile */}
-        {filteredEnquiries.length === 0 && (
+        {visibleEnquiries.length === 0 && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center text-zinc-500">
             <p className="text-sm font-medium">No enquiries found</p>
             <p className="text-xs text-zinc-600 mt-1">Try changing your timeframe filter or check back later.</p>
@@ -213,7 +240,7 @@ export default function EnquiriesTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-              {filteredEnquiries.map((e) => {
+              {visibleEnquiries.map((e) => {
                 const customerType = getCustomerTypeLabel(e);
 
                 return (
@@ -266,6 +293,9 @@ export default function EnquiriesTab({
                             <span>{e.product_name}</span>
                           </div>
                         )}
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${isCompleted(e) ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-amber-500/20 bg-amber-500/10 text-amber-400'}`}>
+                          {isCompleted(e) ? 'Completed' : 'Pending'}
+                        </span>
                       </div>
                     </td>
 
@@ -301,6 +331,14 @@ export default function EnquiriesTab({
                           <Phone size={14} />
                         </a>
 
+                        <button
+                          onClick={() => onToggleEnquiryStatus?.(e)}
+                          className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition cursor-pointer"
+                          title={isCompleted(e) ? 'Mark as pending' : 'Mark as completed'}
+                        >
+                          {isCompleted(e) ? <CircleDashed size={14} /> : <CheckCircle2 size={14} />}
+                        </button>
+
                         {/* WhatsApp Quick Action */}
                         <a
                           href={`https://wa.me/${e.phone?.replace(/[^0-9]/g, '')}`}
@@ -328,7 +366,7 @@ export default function EnquiriesTab({
               })}
 
               {/* Empty State Desktop */}
-              {filteredEnquiries.length === 0 && (
+              {visibleEnquiries.length === 0 && (
                 <tr>
                   <td colSpan="7" className="p-12 text-center text-zinc-500">
                     <p className="text-sm font-medium">No enquiries found</p>

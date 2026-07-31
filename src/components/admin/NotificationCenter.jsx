@@ -1,12 +1,12 @@
 // src/components/admin/NotificationCenter.jsx
 import React from 'react';
-import { Bell, Check, Trash2 } from 'lucide-react';
+import { Bell, Check, Trash2, X } from 'lucide-react';
 
-export default function NotificationCenter({ notifications, onMarkAllRead, onClearAll, onNotificationClick }) {
+export default function NotificationCenter({ notifications, onMarkAllRead, onClearAll, onNotificationClick, onClose }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="absolute right-4 md:right-8 top-16 w-80 md:w-96 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl z-50 overflow-hidden font-sans">
+    <div className="fixed inset-x-3 top-20 z-[60] w-auto overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl font-sans md:absolute md:inset-x-auto md:right-8 md:top-16 md:w-96">
       <div className="flex items-center justify-between p-3.5 bg-zinc-950 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <Bell size={16} className="text-red-500" />
@@ -23,13 +23,16 @@ export default function NotificationCenter({ notifications, onMarkAllRead, onCle
               <Trash2 size={12} /> Clear
             </button>
           )}
+          <button onClick={onClose} className="rounded-lg p-1 text-zinc-400 transition hover:bg-zinc-800 hover:text-white" aria-label="Close notifications">
+            <X size={15} />
+          </button>
         </div>
       </div>
 
       <div className="max-h-80 overflow-y-auto divide-y divide-zinc-800/60">
         {notifications.length === 0 ? (
           <div className="p-6 text-center text-zinc-500 text-xs font-medium">
-            No notifications recorded yet.
+            No notifications yet.
           </div>
         ) : (
           notifications.map((noti) => (

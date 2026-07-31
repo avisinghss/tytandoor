@@ -11,7 +11,7 @@ import ScrollIndicator from "./ScrollIndicator";
 
 export default function HeroSlider() {
   return (
-    <section className="relative min-h-[100dvh] w-full overflow-hidden">
+    <section className="relative h-[100svh] w-full overflow-hidden md:h-screen">
       <Swiper
         modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
@@ -24,11 +24,11 @@ export default function HeroSlider() {
         pagination={{
           clickable: true,
         }}
-        className="h-full min-h-[100dvh]"
+        className="h-full"
       >
         {heroSlides.map((slide) => (
           <SwiperSlide key={slide.id}>
-            <div className="relative min-h-[100dvh] w-full flex flex-col justify-center py-16 md:py-0 overflow-hidden">
+            <div className="relative h-full w-full overflow-hidden">
 
               {/* Background Image */}
               <img

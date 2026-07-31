@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export default function HeroContent({ slide }) {
-  console.log("HeroContent slide:", slide);
+  const navigate = useNavigate();
 
   return (
     <div key={slide.id} className="absolute inset-0 z-20 flex items-center">
@@ -56,11 +57,11 @@ export default function HeroContent({ slide }) {
             transition={{ delay: 0.6, duration: 0.8 }}
             className="mt-5 sm:mt-10 flex flex-wrap gap-3 sm:gap-4"
           >
-            <button className="rounded-full bg-red-700 px-5 py-2.5 sm:px-8 sm:py-4 text-xs sm:text-base font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-red-800">
+            <button onClick={() => navigate(slide.primaryPath)} className="rounded-full bg-red-700 px-5 py-2.5 sm:px-8 sm:py-4 text-xs sm:text-base font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-red-800">
               {slide.primaryButton}
             </button>
 
-            <button className="rounded-full border border-white/70 bg-white/10 px-5 py-2.5 sm:px-8 sm:py-4 text-xs sm:text-base font-semibold text-white backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-black">
+            <button onClick={() => navigate(slide.secondaryPath)} className="rounded-full border border-white/70 bg-white/10 px-5 py-2.5 sm:px-8 sm:py-4 text-xs sm:text-base font-semibold text-white backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-black">
               {slide.secondaryButton}
             </button>
           </motion.div>

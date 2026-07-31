@@ -8,6 +8,8 @@ const heroSlides = [
     image: "/images/hero/hero-1.jpg",
     primaryButton: "Explore Collection",
     secondaryButton: "Get Quote",
+    primaryPath: "/products",
+    secondaryPath: "/contact",
   },
   {
     id: 2,
@@ -18,6 +20,8 @@ const heroSlides = [
     image: "/images/hero/hero-2.jpg",
     primaryButton: "View Products",
     secondaryButton: "Contact Us",
+    primaryPath: "/products",
+    secondaryPath: "/contact",
   },
   {
     id: 3,
@@ -28,6 +32,8 @@ const heroSlides = [
     image: "/images/hero/hero-3.jpg",
     primaryButton: "Our Story",
     secondaryButton: "Request Quote",
+    primaryPath: "/about",
+    secondaryPath: "/contact",
   },
 ];
 
