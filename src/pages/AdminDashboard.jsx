@@ -96,6 +96,11 @@ export default function AdminDashboard({ onLogout }) {
   }, []);
 
   const fetchPersistentNotifications = useCallback(async () => {
+    const clearedAt = Number(localStorage.getItem('tytan_notifications_cleared_at') || 0);
+    const readIds = new Set(JSON.parse(localStorage.getItem('tytan_read_notification_ids') || '[]'));
+    const formatNotifications = (items) => items
+      .filter((item) => new Date(item.created_at).getTime() > clearedAt)
+      .map((item) => ({ ...item, time: new Date(item.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }), read: item.read || item.is_read || readIds.has(item.id), targetTab: item.targetTab || item.target_tab || 'enquiries' }));
     const { data, error } = await supabase
       .from('admin_notifications')
       .select('*')
@@ -103,14 +108,7 @@ export default function AdminDashboard({ onLogout }) {
       .limit(100);
 
     if (!error) {
-      setNotifications((data || []).map((item) => ({
-      id: item.id,
-      title: item.title,
-      body: item.body,
-      time: new Date(item.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }),
-      read: item.is_read,
-      targetTab: item.target_tab || 'enquiries',
-      })));
+      setNotifications(formatNotifications(data || []));
       return;
     }
 
@@ -138,7 +136,7 @@ export default function AdminDashboard({ onLogout }) {
         read: false,
       }));
 
-    setNotifications(fallbackNotifications);
+    setNotifications(formatNotifications(fallbackNotifications));
   }, []);
 
   const {
@@ -408,14 +406,20 @@ export default function AdminDashboard({ onLogout }) {
             notifications={notifications}
             onMarkAllRead={async () => {
               setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+              localStorage.setItem('tytan_read_notification_ids', JSON.stringify(notifications.map((notification) => notification.id)));
               await supabase.from('admin_notifications').update({ is_read: true }).eq('is_read', false);
             }}
             onClearAll={async () => {
               setNotifications([]);
+              localStorage.setItem('tytan_notifications_cleared_at', String(Date.now()));
+              localStorage.removeItem('tytan_read_notification_ids');
               await supabase.from('admin_notifications').delete().gte('created_at', '1970-01-01T00:00:00.000Z');
             }}
             onNotificationClick={(noti) => {
               setNotifications((prev) => prev.map((n) => n.id === noti.id ? { ...n, read: true } : n));
+              const readIds = new Set(JSON.parse(localStorage.getItem('tytan_read_notification_ids') || '[]'));
+              readIds.add(noti.id);
+              localStorage.setItem('tytan_read_notification_ids', JSON.stringify([...readIds]));
               void supabase.from('admin_notifications').update({ is_read: true }).eq('id', noti.id);
               setActiveTab(noti.targetTab);
               setShowNotiDropdown(false);

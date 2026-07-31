@@ -110,22 +110,18 @@ export default function EnquiriesTab({
             <div key={e.id} className="bg-zinc-900 border border-zinc-800/90 rounded-2xl p-4 space-y-3.5 shadow-lg">
               
               {/* Card Header: Customer Name & Type Badge */}
-              <div className="flex items-start justify-between gap-2 border-b border-zinc-800/80 pb-3">
+              <div className="border-b border-zinc-800/80 pb-3">
                 <div>
-                  <h3 className="font-bold text-white text-base">{e.name}</h3>
+                  <h3 className="font-bold text-white text-lg break-words">{e.name}</h3>
                   <div className="flex items-center gap-1.5 text-zinc-400 text-xs mt-0.5">
                     <Calendar size={12} className="text-zinc-500 shrink-0" />
                     <span>{e.created_at ? new Date(e.created_at).toLocaleDateString() : '-'}</span>
                   </div>
                 </div>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getBadgeStyle(customerType)} shrink-0`}>
-                  <Tag size={10} />
-                  {customerType}
-                </span>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${isCompleted(e) ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-amber-500/20 bg-amber-500/10 text-amber-400'} shrink-0`}>
-                  {isCompleted(e) ? <CheckCircle2 size={10} /> : <CircleDashed size={10} />}
-                  {isCompleted(e) ? 'Completed' : 'Pending'}
-                </span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className={`inline-flex max-w-full items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getBadgeStyle(customerType)}`}><Tag size={10} className="shrink-0" /><span className="truncate">{customerType}</span></span>
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${isCompleted(e) ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-amber-500/20 bg-amber-500/10 text-amber-400'}`}>{isCompleted(e) ? <CheckCircle2 size={10} /> : <CircleDashed size={10} />}{isCompleted(e) ? 'Completed' : 'Pending'}</span>
+                </div>
               </div>
 
               {/* Product Badge if available */}
