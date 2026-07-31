@@ -1,8 +1,7 @@
 import { supabase } from './supabaseClient';
 
 /**
- * Ask the server to send a web-push notification to registered admin devices.
- * A failed notification must never make a customer form submission fail.
+ * Store an alert. A database webhook sends push messages server-to-server.
  */
 export async function notifyAdmins({ title, body, targetTab }) {
   const notification = {
@@ -19,11 +18,4 @@ export async function notifyAdmins({ title, body, targetTab }) {
     console.warn('The form was saved, but the admin notification was not stored.', storageError);
   }
 
-  const { error: pushError } = await supabase.functions.invoke('send-push', {
-    body: { title, body, targetTab },
-  });
-
-  if (pushError) {
-    console.warn('The form was saved, but the admin push notification was not sent.', pushError);
-  }
 }

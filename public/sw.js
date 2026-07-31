@@ -23,7 +23,7 @@ self.addEventListener('push', (event) => {
       badge: data.badge || '/pwa-192x192.png',
       data: {
         targetTab: data.targetTab || 'enquiries',
-        url: data.url || '/admin',
+        url: data.url || '/admintytandoor',
       },
     };
 
@@ -54,7 +54,7 @@ self.addEventListener('notificationclick', (event) => {
 
       // If the app is closed, open a new window
       if (clients.openWindow) {
-        return clients.openWindow(`/admin?tab=${targetTab}`);
+        return clients.openWindow(`/admintytandoor?tab=${targetTab}`);
       }
     })
   );
