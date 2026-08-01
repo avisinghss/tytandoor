@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function ProductCard({ product, onEnquire }) {
+export default function ProductCard({ product }) {
+  const navigate = useNavigate();
   // Safe Fallback image in case image path is missing
   const fallbackImage = "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600";
 
@@ -24,16 +26,13 @@ export default function ProductCard({ product, onEnquire }) {
           {product?.category}
         </p>
 
-        {/* Enquiry Button */}
+        {/* Product Details Button */}
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation(); // Prevents navigating if card itself is clickable
-            if (onEnquire) onEnquire(product);
-          }}
+          onClick={() => navigate(`/products/${product?.slug || product?.id}`)}
           className="self-start px-7 py-3 bg-red-600/90 hover:bg-red-600 text-white font-bold text-sm rounded-full tracking-wide transition-all border border-red-500/30 active:scale-95 shadow-lg cursor-pointer"
         >
-          Enquiry Now
+          View Product
         </button>
       </div>
       

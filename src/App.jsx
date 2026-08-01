@@ -1,6 +1,6 @@
 // src/App.jsx
 
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, useLocation } from "react-router-dom";
 import Header from "./components/layout/Header";
 import AppRoutes from "./routes/AppRoutes";
@@ -10,6 +10,10 @@ import { usePageTracker } from "./hooks/usePageTracker";
 function MainContent() {
   const location = useLocation();
   usePageTracker();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
   
   // Check if current route is an Admin route
   const isAdminRoute = location.pathname.startsWith("/admin");

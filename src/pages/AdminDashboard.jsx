@@ -1,5 +1,5 @@
 // src/pages/AdminDashboard.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../services/supabaseClient';
 import * as XLSX from 'xlsx';
 import { 
@@ -38,6 +38,7 @@ export default function AdminDashboard({ onLogout }) {
   const [showNotiDropdown, setShowNotiDropdown] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
+  const notificationAudioRef = useRef(null);
 
   // Modals & Selection State
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -49,8 +50,24 @@ export default function AdminDashboard({ onLogout }) {
 
   const openDeleteModal = (type, id, title, message) => setDeleteModal({ isOpen: true, type, id, title, message });
 
+  useEffect(() => {
+    const audio = new Audio('/notification-tone.wav');
+    audio.preload = 'auto';
+    notificationAudioRef.current = audio;
+    audio.load();
+    return () => {
+      audio.pause();
+      notificationAudioRef.current = null;
+    };
+  }, []);
+
   const playNotificationSound = () => {
-    new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(() => {});
+    const audio = notificationAudioRef.current;
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Browsers require an interaction before programmatic sound is allowed.
+    });
   };
 
   const triggerNotification = useCallback(async (categoryName, bodyMessage, targetTab = 'enquiries') => {
@@ -309,7 +326,7 @@ export default function AdminDashboard({ onLogout }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="h-screen w-full bg-zinc-950 text-zinc-100 flex flex-col md:flex-row font-sans overflow-hidden">
+    <div className="h-[100dvh] w-full bg-zinc-950 text-zinc-100 flex flex-col md:flex-row font-sans overflow-hidden">
       
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800 shrink-0 z-40">
@@ -392,7 +409,7 @@ export default function AdminDashboard({ onLogout }) {
       </aside>
 
       {/* Main View Area */}
-      <main className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8 relative">
+      <main className="flex-1 h-full min-h-0 overflow-y-auto overscroll-contain bg-zinc-950 p-4 sm:p-6 lg:p-8 relative">
         <div className="hidden md:flex justify-end items-center mb-6 relative">
           <button onClick={() => setShowNotiDropdown(!showNotiDropdown)} className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl">
             <Bell size={18} className="text-zinc-400" />

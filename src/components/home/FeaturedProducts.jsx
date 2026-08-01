@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import ProductCard from "./ProductCard"; 
 // Step 4: Import getFeaturedProducts instead of getProducts
 import { getFeaturedProducts, getProducts } from "../../services/productService"; 
+import { useNavigate } from "react-router-dom";
 
 export default function FeaturedProducts() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -165,9 +167,10 @@ export default function FeaturedProducts() {
                 <p className="text-zinc-300 font-semibold text-xs tracking-wider uppercase mb-5">{currentProduct.category}</p>
                 <button 
                   type="button" 
+                  onClick={() => navigate(`/products/${currentProduct.slug || currentProduct.id}`)}
                   className="self-start px-7 py-3 bg-red-600/90 hover:bg-red-600 text-white font-bold text-sm rounded-full tracking-wide transition-all border border-red-500/30 active:scale-95 shadow-md cursor-pointer"
                 >
-                  Enquiry Now
+                  View Product
                 </button>
               </div>
             </div>
