@@ -5,7 +5,7 @@ const heroSlides = [
     subtitle: "Designed to Impress.",
     description:
       "Premium flush doors crafted with precision, engineered for luxury homes, villas and commercial spaces.",
-    image: "/images/hero/hero-1.jpg",
+    image: "/images/hero/hero-1.png",
     primaryButton: "Explore Collection",
     secondaryButton: "Get Quote",
     primaryPath: "/products",
@@ -17,7 +17,7 @@ const heroSlides = [
     subtitle: "For Modern Architecture.",
     description:
       "Elegant finishes, exceptional durability and timeless craftsmanship for every entrance.",
-    image: "/images/hero/hero-2.jpg",
+    image: "/images/hero/hero-2.png",
     primaryButton: "View Products",
     secondaryButton: "Contact Us",
     primaryPath: "/products",
@@ -29,7 +29,7 @@ const heroSlides = [
     subtitle: "Trusted Across India.",
     description:
       "Manufactured using premium materials with advanced technology and strict quality standards.",
-    image: "/images/hero/hero-3.jpg",
+    image: "/images/hero/hero-3.png",
     primaryButton: "Our Story",
     secondaryButton: "Request Quote",
     primaryPath: "/about",
