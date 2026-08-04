@@ -148,8 +148,9 @@ export default function Help() {
       return;
     }
 
-    if (file.size > 500 * 1024) {
-      setWarrantyError('File size must be 500KB or smaller.');
+    // 2MB limit check (2 * 1024 * 1024 bytes)
+    if (file.size > 2 * 1024 * 1024) {
+      setWarrantyError('File size must be 2MB or smaller.');
       e.target.value = null;
       return;
     }
@@ -446,7 +447,7 @@ export default function Help() {
                         </div>
 
                         <div>
-                          <label className="block mb-1 font-bold">Attach Bill Receipt * (JPEG/JPG/PNG, max 500KB)</label>
+                          <label className="block mb-1 font-bold">Attach Bill Receipt * (JPEG/JPG/PNG, max 2MB)</label>
                           <div className="relative border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-4 text-center hover:border-[#b31919] transition">
                             <input
                               type="file"

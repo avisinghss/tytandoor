@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wrench, ShieldAlert, Volume2, CloudSun, Award } from 'lucide-react';
+import { Wrench, ShieldAlert, Volume2, CloudSun, Award, Bug } from 'lucide-react';
 
 const features = [
   {
@@ -22,6 +22,10 @@ const features = [
     icon: Award,
     title: 'Tested for Strength & Durability',
   },
+  {
+    icon: Bug,
+    title: '100% Termite & Bug Proof',
+  },
 ];
 
 export function ProductFeatures() {
@@ -32,16 +36,16 @@ export function ProductFeatures() {
           Key Product Features
         </h3>
 
-        {/* Grid: Compact 2 columns on mobile, scaling up to 5 on large screens */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-6 justify-center">
+        {/* Grid: 2 cols (mobile), 3 cols (tablet/desktop) for a balanced 2x3 layout */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-6 justify-center">
           {features.map((item, idx) => {
             const Icon = item.icon;
             return (
               <div
                 key={idx}
-                className="flex flex-col sm:flex-col items-center justify-center text-center p-2.5 sm:p-4 bg-white dark:bg-zinc-950 rounded-xl sm:rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs hover:shadow-md transition-all duration-300 group"
+                className="flex flex-col items-center justify-center text-center p-2.5 sm:p-4 bg-white dark:bg-zinc-950 rounded-xl sm:rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs hover:shadow-md transition-all duration-300 group"
               >
-                {/* Scaled Down Red Icon Badge on Mobile */}
+                {/* Scaled Down Red Icon Badge */}
                 <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#b31919] dark:border-red-500 flex items-center justify-center mb-1.5 sm:mb-3 group-hover:scale-105 transition-transform shrink-0 bg-red-50/40 dark:bg-red-950/20">
                   <Icon className="w-4 h-4 sm:w-6 sm:h-6 text-[#b31919] dark:text-red-500" />
                 </div>
@@ -58,5 +62,4 @@ export function ProductFeatures() {
   );
 }
 
-// Added default export as fallback to prevent import errors
 export default ProductFeatures;
