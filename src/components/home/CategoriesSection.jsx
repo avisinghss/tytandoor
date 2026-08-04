@@ -168,9 +168,8 @@ export default function CategoriesSection() {
                   : "border-gray-200 dark:border-zinc-800 group-hover:border-gray-400 dark:group-hover:border-zinc-600"
               }`}
             >
-              <div className="font-extrabold text-2xl text-gray-300 dark:text-zinc-700 group-hover:text-[#b31919] dark:group-hover:text-red-500 transition-colors">
-                ALL
-              </div>
+             <img src="/logo.png" alt="Logo" className="h-14 w-auto object-contain transition-opacity group-hover:opacity-80" 
+/>
             </div>
             <span
               className={`mt-3 text-xs md:text-sm font-black tracking-wide text-center transition-colors ${
