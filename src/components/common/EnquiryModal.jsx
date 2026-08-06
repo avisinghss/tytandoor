@@ -341,7 +341,7 @@ export default function EnquiryModal({ isOpen, onClose }) {
             {/* Quick Action Buttons */}
             <div className="grid grid-cols-2 gap-2 mt-3 pt-1">
               <a
-                href="https://wa.me/917268052110"
+                href="https://wa.me/917408708983"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 border border-emerald-500 text-emerald-600 font-bold text-[11px] py-1.5 px-2 rounded-lg hover:bg-emerald-50 transition"
@@ -351,7 +351,7 @@ export default function EnquiryModal({ isOpen, onClose }) {
               </a>
 
               <a
-                href="tel:+917268052110"
+                href="tel:+917408708983"
                 className="flex items-center justify-center gap-1 border border-zinc-300 bg-zinc-50 text-zinc-900 font-bold text-[10px] sm:text-[11px] py-1.5 px-2 rounded-lg hover:bg-zinc-100 transition"
               >
                 <span className="text-[#e11d23]">Instant Help</span>

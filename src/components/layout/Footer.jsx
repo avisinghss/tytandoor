@@ -1,6 +1,6 @@
 import { Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FaFacebookF, FaInstagram } from "react-icons/fa";
+import { FaFacebookF, FaInstagram , FaWhatsapp} from "react-icons/fa";
 import { FaXTwitter, FaThreads } from "react-icons/fa6";
 
 export default function Footer() {
@@ -118,20 +118,20 @@ export default function Footer() {
                 <div className="flex items-center gap-2.5 sm:gap-3">
                   <Phone className="w-4 h-4 text-red-600 shrink-0" />
                   <a
-                    href="tel:+91XXXXXXXXXX"
+                    href="tel:+917408708983"
                     className="hover:text-white transition-colors"
                   >
-                    +91 XXXXX XXXXX
+                    +91 7408708983
                   </a>
                 </div>
 
                 <div className="flex items-center gap-2.5 sm:gap-3">
                   <Mail className="w-4 h-4 text-red-600 shrink-0" />
                   <a
-                    href="mailto:info@tytandoor.com"
+                    href="mailto:tytandoor@gmail.com"
                     className="hover:text-white transition-colors break-all"
                   >
-                    info@tytandoor.com
+                    tytandoor@gmail.com
                   </a>
                 </div>
               </div>

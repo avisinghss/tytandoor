@@ -3,8 +3,8 @@ import { Phone, MessageCircleCode } from 'lucide-react'; // Elegant React Icons
 
 export default function StickyActions() {
   // Aap yahan apne actual details fill kar sakte hain
-  const phoneNumber = "+918318886379"; 
-  const whatsAppNumber = "918318886379";
+  const phoneNumber = "+917408708983"; 
+  const whatsAppNumber = "917408708983";
   const whatsAppMessage = encodeURIComponent("Hello! I am interested in your premium doors collection.");
 
   return (
