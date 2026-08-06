@@ -1,11 +1,7 @@
 import { Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  FaFacebookF,
-  FaInstagram,
-  FaLinkedinIn,
-} from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
+import { FaFacebookF, FaInstagram } from "react-icons/fa";
+import { FaXTwitter, FaThreads } from "react-icons/fa6";
 
 export default function Footer() {
   return (
@@ -150,32 +146,32 @@ export default function Footer() {
             </h3>
             <div className="flex items-center gap-3 sm:gap-4 text-base sm:text-xl">
               <a
-                href="#facebook"
+                href="https://www.facebook.com/tytandoor"
                 aria-label="Facebook"
                 className="p-2 sm:p-2.5 rounded-full bg-zinc-900 text-zinc-400 hover:text-white hover:bg-red-600 transition-all duration-300"
               >
                 <FaFacebookF className="w-4 h-4 sm:w-4 sm:h-4" />
               </a>
               <a
-                href="#instagram"
+                href="https://www.instagram.com/tytandoor"
                 aria-label="Instagram"
                 className="p-2 sm:p-2.5 rounded-full bg-zinc-900 text-zinc-400 hover:text-white hover:bg-red-600 transition-all duration-300"
               >
                 <FaInstagram className="w-4 h-4 sm:w-4 sm:h-4" />
               </a>
               <a
-                href="#twitter"
+                href="https://twitter.com/tytandoor"
                 aria-label="Twitter X"
                 className="p-2 sm:p-2.5 rounded-full bg-zinc-900 text-zinc-400 hover:text-white hover:bg-red-600 transition-all duration-300"
               >
                 <FaXTwitter className="w-4 h-4 sm:w-4 sm:h-4" />
               </a>
               <a
-                href="#linkedin"
-                aria-label="LinkedIn"
+                href="https://www.threads.net/@tytandoor"
+                aria-label="Threads"
                 className="p-2 sm:p-2.5 rounded-full bg-zinc-900 text-zinc-400 hover:text-white hover:bg-red-600 transition-all duration-300"
               >
-                <FaLinkedinIn className="w-4 h-4 sm:w-4 sm:h-4" />
+                <FaThreads  className="w-4 h-4 sm:w-4 sm:h-4" />
               </a>
             </div>
           </div>
