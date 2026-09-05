@@ -16,7 +16,7 @@ export default function AdminLogin({ onLoginSuccess }) {
     const normalizedEmail = email.trim().toLowerCase();
 
     const result = forgotPassword
-      ? await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo: `${window.location.origin}/admintytandoor` })
+      ? await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo: 'https://admin.tytandoor.com/' })
       : await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
 
     if (result.error) setMessage({ type: 'error', text: result.error.message });

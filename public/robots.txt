@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admintytandoor
+
+Sitemap: https://tytandoor.com/sitemap.xml

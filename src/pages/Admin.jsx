@@ -9,16 +9,31 @@ export default function Admin() {
 
   useEffect(() => {
     // 1. Check current Supabase Auth session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    const resolveSession = async (nextSession) => {
+      if (!nextSession) {
+        setSession(null);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('user_id')
+        .eq('user_id', nextSession.user.id)
+        .maybeSingle();
+      setSession(!error && data ? nextSession : null);
       setLoading(false);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      resolveSession(session);
     });
 
     // 2. Listen for auth state changes (login, logout, session expiration)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
+      resolveSession(nextSession);
     });
 
     return () => subscription.unsubscribe();
@@ -26,8 +41,33 @@ export default function Admin() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    }
     setSession(null);
   };
+
+  useEffect(() => {
+    if (!session || window.location.hostname !== 'admin.tytandoor.com') return undefined;
+
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = '/manifest.json';
+    document.head.appendChild(manifestLink);
+
+    let registration;
+    navigator.serviceWorker?.register('/sw.js')
+      .then((result) => {
+        registration = result;
+        return registration.update();
+      })
+      .catch((error) => console.error('Admin service worker registration failed:', error));
+
+    return () => {
+      manifestLink.remove();
+    };
+  }, [session]);
 
   if (loading) {
     return (

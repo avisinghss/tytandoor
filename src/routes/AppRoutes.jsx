@@ -10,6 +10,12 @@ import Help from "../pages/Help";
 import Admin from "../pages/Admin";
 
 export default function AppRoutes() {
+  const isAdminHost = window.location.hostname === "admin.tytandoor.com";
+
+  if (isAdminHost) {
+    return <Routes><Route path="*" element={<Admin />} /></Routes>;
+  }
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />
@@ -20,8 +26,6 @@ export default function AppRoutes() {
       <Route path="/contact" element={<Contact />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/help" element={<Help />} /> 
-      <Route path="/admintytandoor" element={<Admin />} />
-
     </Routes>
   );
 }

@@ -29,7 +29,7 @@ create policy "Admins can delete notifications" on public.admin_notifications fo
 
 -- Apply the same role check to the admin-only tables.
 do $$ declare table_name text; begin
-  foreach table_name in array array['enquiries','contact_submissions','call_requests','warranty_claims','staff','projects','page_visits','push_subscriptions'] loop
+  foreach table_name in array array['enquiries','contact_submissions','call_requests','warranty_claims','staff','projects','products','categories','page_visits','push_subscriptions'] loop
     execute format('alter table public.%I enable row level security', table_name);
     execute format('drop policy if exists "Admins manage data" on public.%I', table_name);
     execute format('create policy "Admins manage data" on public.%I for all to authenticated using (public.is_admin()) with check (public.is_admin())', table_name);
@@ -42,3 +42,9 @@ create policy "Public can create contacts" on public.contact_submissions for ins
 create policy "Public can create calls" on public.call_requests for insert to anon, authenticated with check (true);
 create policy "Public can create warranty claims" on public.warranty_claims for insert to anon, authenticated with check (true);
 create policy "Public can record visits" on public.page_visits for insert to anon, authenticated with check (true);
+
+-- Catalog data is public-facing, but only admins can change it.
+drop policy if exists "Public can read products" on public.products;
+drop policy if exists "Public can read categories" on public.categories;
+create policy "Public can read products" on public.products for select to anon, authenticated using (true);
+create policy "Public can read categories" on public.categories for select to anon, authenticated using (true);

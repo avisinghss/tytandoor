@@ -177,11 +177,6 @@ export default function AdminDashboard({ onLogout }) {
     fetchPersistentNotifications();
     const notificationRefreshId = window.setInterval(fetchPersistentNotifications, 15000);
 
-    let manifestLink = document.querySelector('link[rel="manifest"]') || document.createElement('link');
-    manifestLink.rel = 'manifest';
-    manifestLink.href = '/manifest.json';
-    if (!manifestLink.parentNode) document.head.appendChild(manifestLink);
-
     if ('Notification' in window) setNotiPermission(Notification.permission);
 
     const handleSWMessage = (e) => { if (e.data?.type === 'NAVIGATE_TAB') setActiveTab(e.data.tab); };

@@ -1,6 +1,8 @@
 {
   "short_name": "Tytan Admin",
   "name": "Tytan Admin Control Panel",
+  "id": "https://admin.tytandoor.com/",
+  "description": "Private Tytan Door administration panel.",
   "icons": [
     {
       "src": "/pwa-192x192.png",
@@ -13,8 +15,8 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": "/admintytandoor",
-  "scope": "/admintytandoor",
+  "start_url": "/",
+  "scope": "/",
   "background_color": "#09090b",
   "theme_color": "#dc2626",
   "display": "standalone",

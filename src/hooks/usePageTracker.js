@@ -10,7 +10,7 @@ export function usePageTracker() {
     const trackVisit = async () => {
       // Admin activity and a refresh of an already-viewed page should not be
       // counted as customer traffic.
-      if (location.pathname.startsWith('/admintytandoor')) return;
+      if (window.location.hostname === 'admin.tytandoor.com') return;
 
       const viewedPagesKey = 'tytan_viewed_pages_this_session';
       const viewedPages = new Set(JSON.parse(sessionStorage.getItem(viewedPagesKey) || '[]'));
