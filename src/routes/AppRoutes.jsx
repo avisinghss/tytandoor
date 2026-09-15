@@ -13,7 +13,12 @@ export default function AppRoutes() {
   const isAdminHost = window.location.hostname === "admin.tytandoor.com";
 
   if (isAdminHost) {
-    return <Routes><Route path="*" element={<Admin />} /></Routes>;
+    return (
+      <Routes>
+        {/* Using /* allows nested routes inside <Admin /> to match properly */}
+        <Route path="/*" element={<Admin />} />
+      </Routes>
+    );
   }
 
   return (
@@ -21,7 +26,6 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/products" element={<Products />} />
-      {/* Dynamic single product page */}
       <Route path="/products/:slug" element={<ProductDetail />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/terms" element={<Terms />} />
