@@ -1,9 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://tytandoor.com/</loc></url>
-  <url><loc>https://tytandoor.com/about</loc></url>
-  <url><loc>https://tytandoor.com/products</loc></url>
-  <url><loc>https://tytandoor.com/contact</loc></url>
-  <url><loc>https://tytandoor.com/help</loc></url>
-  <url><loc>https://tytandoor.com/terms</loc></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- Core Brand & Landing -->
+  <url>
+    <loc>https://tytandoor.com/</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- Full Products Catalog -->
+  <url>
+    <loc>https://tytandoor.com/products</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Company Authority & Heritage -->
+  <url>
+    <loc>https://tytandoor.com/about</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Direct Contact & Local HQ -->
+  <url>
+    <loc>https://tytandoor.com/contact</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Support & 10-Year Warranty Portal -->
+  <url>
+    <loc>https://tytandoor.com/help</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- Legal & Privacy Policy -->
+  <url>
+    <loc>https://tytandoor.com/terms</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <!-- Top Product Deep Links for PageRank & Search Snippets -->
+  <url>
+    <loc>https://tytandoor.com/product/royal-teak-laminated-door</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tytandoor.com/product/modern-geometric-membrane-door</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tytandoor.com/product/architectural-solid-flush-door</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tytandoor.com/product/signature-carved-designer-door</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

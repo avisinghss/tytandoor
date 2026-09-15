@@ -48,6 +48,53 @@ function ProductDetail() {
     (p) => p.slug === slug || String(p.id) === slug
   );
 
+  // Dynamic SEO & Title Update for PageRank and Search Engines
+  useEffect(() => {
+    if (product?.name) {
+      document.title = `${product.name} | Tytan Door`;
+      
+      // Inject or update Product JSON-LD
+      const scriptId = 'product-json-ld';
+      let scriptTag = document.getElementById(scriptId);
+      if (!scriptTag) {
+        scriptTag = document.createElement('script');
+        scriptTag.id = scriptId;
+        scriptTag.type = 'application/ld+json';
+        document.head.appendChild(scriptTag);
+      }
+      scriptTag.text = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        image: product.image_url || product.image || 'https://tytandoor.com/logo.png',
+        description: product.description || 'Premium architectural door crafted by Tytan Door, Ballia.',
+        brand: {
+          '@type': 'Brand',
+          name: 'Tytan Door',
+        },
+        category: product.category || 'Doors',
+        offers: {
+          '@type': 'Offer',
+          url: window.location.href,
+          priceCurrency: 'INR',
+          price: 'Contact for Quote',
+          availability: 'https://schema.org/InStock',
+          seller: {
+            '@type': 'Organization',
+            name: 'Tytan Door',
+          },
+        },
+      });
+    } else {
+      document.title = 'Tytan Door | Premium Doors';
+    }
+
+    return () => {
+      const existing = document.getElementById('product-json-ld');
+      if (existing) existing.remove();
+    };
+  }, [product]);
+
   // Handle Product Inquiry Submit
   const handleInquirySubmit = async (e) => {
     e.preventDefault();

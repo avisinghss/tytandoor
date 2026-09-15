@@ -1,0 +1,6 @@
+{
+  "name": "Tytan Door",
+  "description": "Tytan Door is a premium door manufacturer and supplier offering Laminated Doors, Membrane Doors, Flush Doors, and Designer Doors.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

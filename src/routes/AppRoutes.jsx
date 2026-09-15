@@ -30,6 +30,7 @@ export default function AppRoutes() {
       <Route path="/contact" element={<Contact />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/help" element={<Help />} /> 
+      <Route path="/admin/*" element={<Admin />} />
     </Routes>
   );
 }

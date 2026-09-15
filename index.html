@@ -173,36 +173,57 @@ Ballia Door Manufacturer"
   >
 
   <!-- ========================= -->
-  <!-- STRUCTURED DATA -->
+  <!-- STRUCTURED DATA (SEO / GEO / AEO) -->
   <!-- ========================= -->
 
-  <!-- WEBSITE / BRAND -->
-
+  <!-- 1. WEBSITE SCHEMA -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": "https://tytandoor.com/#website",
     "name": "Tytan Door",
     "url": "https://tytandoor.com/",
-    "description": "Tytan Door is a premium door manufacturer and supplier offering Laminated Doors, Membrane Doors, Flush Doors, Interior Doors, Designer Doors and Wooden Doors."
+    "inLanguage": "en-IN",
+    "description": "Tytan Door is a premium door manufacturer and supplier offering Laminated Doors, Membrane Doors, Flush Doors, Interior Doors, Designer Doors and Wooden Doors.",
+    "publisher": {
+      "@id": "https://tytandoor.com/#organization"
+    }
   }
   </script>
 
-  <!-- BUSINESS -->
-
+  <!-- 2. LOCAL BUSINESS & MANUFACTURER SCHEMA (GEO & LOCAL SEO) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
+    "@id": "https://tytandoor.com/#localbusiness",
     "name": "Tytan Door",
+    "alternateName": "Tytan Doors Ballia",
+    "parentOrganization": {
+      "@type": "Organization",
+      "name": "Anil Interio"
+    },
     "url": "https://tytandoor.com/",
     "logo": "https://tytandoor.com/logo.png",
     "image": "https://tytandoor.com/logo.png",
-    "description": "Tytan Door is a premium door manufacturer and supplier offering Laminated Doors, Membrane Doors, Flush Doors, Interior Doors, Designer Doors and Wooden Doors.",
+    "description": "Premium industrial-grade door manufacturing unit in Ballia, Uttar Pradesh providing Laminated Doors, Membrane Doors, Flush Doors, and Designer Doors.",
     "telephone": "+91-7268052110",
+    "email": "contact@tytandoor.com",
     "priceRange": "₹₹",
+    "currenciesAccepted": "INR",
+    "paymentAccepted": "Cash, Credit Card, UPI, Net Banking",
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        "opens": "09:00",
+        "closes": "20:00"
+      }
+    ],
     "address": {
       "@type": "PostalAddress",
+      "streetAddress": "Anil Interio, Ballia",
       "addressLocality": "Ballia",
       "addressRegion": "Uttar Pradesh",
       "postalCode": "277001",
@@ -210,9 +231,10 @@ Ballia Door Manufacturer"
     },
     "geo": {
       "@type": "GeoCoordinates",
-      "latitude": "25.7596",
-      "longitude": "84.1487"
+      "latitude": 25.7596,
+      "longitude": 84.1487
     },
+    "hasMap": "https://maps.google.com/?q=25.7596,84.1487",
     "areaServed": [
       {
         "@type": "City",
@@ -221,20 +243,111 @@ Ballia Door Manufacturer"
       {
         "@type": "State",
         "name": "Uttar Pradesh"
+      },
+      {
+        "@type": "Country",
+        "name": "India"
+      }
+    ],
+    "makesOffer": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Laminated Doors",
+          "description": "High-pressure decorative laminate surface with superior scratch and water resistance."
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Membrane Doors",
+          "description": "Precision CNC routed doors encased in seamless PVC foil."
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Flush Doors",
+          "description": "Solid engineered timber core flush doors with superior acoustic and thermal insulation."
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Designer Doors",
+          "description": "Artisanal entrance doors featuring custom geometric textures and luxury inlays."
+        }
       }
     ]
   }
   </script>
 
-  <!-- BRAND / ORGANIZATION -->
-
+  <!-- 3. BRAND & ORGANIZATION SCHEMA -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "https://tytandoor.com/#organization",
     "name": "Tytan Door",
     "url": "https://tytandoor.com/",
-    "logo": "https://tytandoor.com/logo.png"
+    "logo": "https://tytandoor.com/logo.png",
+    "sameAs": [
+      "https://www.facebook.com/tytandoor",
+      "https://www.instagram.com/tytandoor"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+91-7268052110",
+      "contactType": "customer service",
+      "areaServed": "IN",
+      "availableLanguage": ["English", "Hindi"]
+    }
+  }
+  </script>
+
+  <!-- 4. FAQPAGE SCHEMA (CRITICAL FOR AEO / ANSWER ENGINE OPTIMIZATION & AI SEARCH SNIPPETS) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Who is the top premium door manufacturer in Ballia, Uttar Pradesh?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Tytan Door (a brand by Anil Interio) is a premier door manufacturer based in Ballia, Uttar Pradesh, specializing in high-durability Laminated Doors, CNC Membrane Doors, Engineered Flush Doors, and luxury Designer Entrance Doors."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What warranty is provided on Tytan Doors?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Tytan Doors come with a 10-Year core warranty against borer, termite, warping, and manufacturing defects, backed by rigorous weather and impact testing."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What door types does Tytan Door manufacture?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Tytan Door manufactures Laminated Doors, CNC Carved Membrane Doors, Solid Timber Core Flush Doors, Architectural Designer Doors, and Seasoned Hardwood Wooden Doors."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How can I request an expert site measurement or quote in Ballia?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Customers can request an expert site visit or immediate price quote by calling +91-7268052110, visiting the Tytan Door showroom in Ballia, or submitting a request online at tytandoor.com."
+        }
+      }
+    ]
   }
   </script>
 

@@ -31,7 +31,7 @@ function MainContent() {
   }, [location.pathname]);
   
   // Check if current route is an Admin route
-  const isAdminHost = window.location.hostname === "admin.tytandoor.com";
+  const isAdminHost = window.location.hostname === "admin.tytandoor.com" || location.pathname.startsWith("/admin");
 
   useEffect(() => {
     if (isAdminHost) {

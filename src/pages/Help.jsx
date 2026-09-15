@@ -16,6 +16,10 @@ import {
 
 export default function Help() {
   const [openFaq, setOpenFaq] = useState(null);
+
+  useEffect(() => {
+    document.title = "Help & Warranty Center | Tytan Door 10-Year Core Guarantee";
+  }, []);
   
   // Active Form View: null | 'WARRANTY' | 'expert'
   const [activeForm, setActiveForm] = useState(null);

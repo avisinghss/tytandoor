@@ -95,6 +95,10 @@ export default function Contact() {
   // ✅ FIX: Place React Router hook inside top-level of component body
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = "Contact Us | Tytan Door - Ballia Showroom & Plant";
+  }, []);
+
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');

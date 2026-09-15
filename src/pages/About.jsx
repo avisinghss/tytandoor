@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import BrandPillars from '../components/home/BrandPillars'; 
 
 export default function About() {
+  useEffect(() => {
+    document.title = "About Us | Tytan Door - Premium Door Manufacturer Ballia";
+  }, []);
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-100 font-sans transition-colors duration-300">
       

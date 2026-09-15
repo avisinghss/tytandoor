@@ -15,6 +15,7 @@ export default function Home() {
 
   // Auto-trigger popup after 2.5 seconds on page load
   useEffect(() => {
+    document.title = "Tytan Door | Premium Doors - Manufacturer Ballia";
     const timer = setTimeout(() => {
       setIsModalOpen(true);
     }, 2500);
